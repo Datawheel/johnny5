@@ -27,7 +27,6 @@ def _isiter(obj):
 
 def _rget(url):
 	'''Function used to track the requests that are performed.'''
-	# print url
 	return requests.get(url)
 
 def _isnum(n):
@@ -114,7 +113,7 @@ def wd_q(d,show=False):
 		Dictionary.
 	show : boolean (False)
 		If True it will print all the used urls.
-	
+
 	Returns
 	-------
 	r : dict
@@ -123,7 +122,7 @@ def wd_q(d,show=False):
 	Examples
 	--------
 	>>> r = j5.wp_q({'prop':'extracts','exintro':'','explaintext':'','pageids':736})
-	>>> print list(r['query']['pages'].values())[0]['extract']
+	>>> print(list(r['query']['pages'].values())[0]['extract'])
 	"""
 	base_url = 'https://www.wikidata.org/w/api.php?'
 	d['action'] = 'wbgetentities' if 'action' not in set(d.keys()) else d['action']
@@ -164,7 +163,7 @@ def wp_q(d,lang='en',continue_override=False,show=False):
 		If True it will not get any of the continuation queries.
 	show : boolean (False)
 		If True it will print all the used urls.
-	
+
 	Returns
 	-------
 	r : dict

@@ -1,5 +1,7 @@
 .DS_Store
+
 *.pyc
+
 johnny5.egg-info/
 johnny5/data/*.nt
 johnny5/data/*.xml
@@ -9,3 +11,5 @@ johnny5/data/enwiki-allarticles.txt
 johnny5/data/instances/*
 johnny5/data/subclassess/*
 dist/*
+
+venv/

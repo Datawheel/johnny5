@@ -60,7 +60,7 @@ class article(object):
 
 		self._extracts = {'en':None}
 
-		self._langlinks_dat = None 
+		self._langlinks_dat = None
 		self._langlinks = None
 
 		self._infobox = None
@@ -115,7 +115,7 @@ class article(object):
 			out+= 'wdid  : '+self.wdid()+'\n'
 		else:
 			out+= 'wdid  : None\n'
-		out+= 'L     : '+str(self.L()) 
+		out+= 'L     : '+str(self.L())
 		return out.encode('utf-8')
 
 	def _missing_wd(self):
@@ -198,7 +198,7 @@ class article(object):
 		'''
 		Returns the wdid of the article.
 		Will get it if it is not provided.
-		
+
 		'''
 		if (self.I['wdid'] is None)&(not self.no_wd):
 			d = self.data_wp()
@@ -381,7 +381,7 @@ class article(object):
 						box_[key] = value
 					box_['box_pos'] = box_pos
 					box_pos+=1
-					box[box_type] = box_					
+					box[box_type] = box_
 			if box is None:
 				self._infobox = {}
 			else:
@@ -421,7 +421,7 @@ class article(object):
 				box_['box_pos'] = box_pos
 				box_pos+=1
 				box[box_type] = box_
-				
+
 		if (box == {}) & force:
 			lengths.append(7) #Infobox should have at least 7 fields
 			length = max(lengths)
@@ -437,7 +437,7 @@ class article(object):
 					box_['box_pos'] = box_pos
 					box_pos+=1
 					box[box_type] = box_
-					
+
 		return box
 
 	def extract(self,lang='en'):
@@ -508,7 +508,7 @@ class article(object):
 							elif Itype == 'title':
 								r = wp_q({'prop':'langlinks','lllimit':500,'titles':self.I[Itype]})
 							if 'langlinks' in list(list(r['query']['pages'].values())[0].keys()):
-								self._langlinks_dat = list(r['query']['pages'].values())[0]['langlinks']  
+								self._langlinks_dat = list(r['query']['pages'].values())[0]['langlinks']
 							else:
 								self._langlinks_dat = []
 						break
@@ -572,7 +572,7 @@ class article(object):
 	def previous_titles(self):
 		'''
 		Gets all the previous titles the page had.
-		ONLY WORKS FOR ENGLISH FOR NOW 
+		ONLY WORKS FOR ENGLISH FOR NOW
 
 		Returns
 		-------
@@ -681,12 +681,12 @@ class article(object):
 	def wd_prop(self,prop):
 		'''
 		Gets the requested Wikidata propery.
-		
+
 		Parameters
 		----------
 		prop : str
 			Wikidata code for the property.
-		
+
 		Returns
 		-------
 		props : list
@@ -736,7 +736,7 @@ class article(object):
 		lang : str (default='en')
 			Language
 
-		Returns 
+		Returns
 		-------
 		content : str
 			Content for the page in the given language.
@@ -753,7 +753,7 @@ class article(object):
 						self._missing_wp()
 					else:
 						if not self.no_wp:
-							self._content = list(r['query']['pages'].values())[0]['revisions'][0]['*'] 
+							self._content = list(r['query']['pages'].values())[0]['revisions'][0]['*']
 		else:
 			raise NameError('Functionality not supported yet.')
 		return self._content
@@ -842,7 +842,7 @@ class article(object):
 		end_date : str
 			End date in format 'yyyy-mm'. If it is not provided it will get pagviews until today.
 		lang : str ('en')
-			Language edition to get the pageviews for. 
+			Language edition to get the pageviews for.
 			If lang=None is passed, it will get the pageviews for all language editions.
 		cdate_override : boolean (False)
 			If True it will get the pageviews before the creation date
@@ -1031,7 +1031,7 @@ class place(article):
 	def coords(self,wiki='wp'):
 		'''
 		Get the coordinates either from Wikipedia or Wikidata.
-		
+
 		Parameters
 		----------
 		wiki : string
@@ -1136,7 +1136,7 @@ class song(article):
 		self._is_song = None
 		self._wpsong  = None
 		self._genre   = None
-		
+
 	def disambiguate(self,artist=None,in_place=False):
 		'''
 		It returns the song that it was able to find within the links of a disambiguation page.
@@ -1146,7 +1146,7 @@ class song(article):
 		artist : str (optional)
 			If provided it will get the song associated with the given artist.
 		in_place : boolean (True)
-			If True, it will not return a list, but rather modify the object to point at the first song of the obtained list. 
+			If True, it will not return a list, but rather modify the object to point at the first song of the obtained list.
 		'''
 		if self.is_song():
 			titles = [self.title()]
@@ -1269,7 +1269,7 @@ class biography(article):
 		self._death_place = None #j5.place()
 		self._name = None
 		#if not self.is_bio():
-		#	print 'Warning: Not a biography ('+str(self.curid())+')'
+		#	print('Warning: Not a biography ('+str(self.curid())+')')
 
 	def __str__(self):
 		self.redirect()
@@ -1285,7 +1285,7 @@ class biography(article):
 			out+= 'wdid  : '+self.wdid()+'\n'
 		else:
 			out+= 'wdid  : None\n'
-		out+= 'L     : '+str(self.L()) 
+		out+= 'L     : '+str(self.L())
 		return out.encode('utf-8')
 
 	def name(self):
@@ -1389,7 +1389,7 @@ class biography(article):
 		'''
 		Retrieves the information whether the biography is about a living or dead person.
 		It uses the WikiProject Biography template from the Talk page to get this information.
-		
+
 		Returns
 		-------
 		alive : str
@@ -1424,14 +1424,14 @@ class biography(article):
 
 	def birth_date(self,raw=False):
 		'''
-		Gets the birth date from the infobox. 
+		Gets the birth date from the infobox.
 		If it is not available in the infobox (or it cannot parse it) it uses Wikidata.
-		
+
 		Parameters
 		----------
 		raw : boolean (False)
 			If True it also returns the raw text from the infobox.
-		
+
 		Returns
 		-------
 		d : tuple
@@ -1478,14 +1478,14 @@ class biography(article):
 
 	def death_date(self,raw=False):
 		'''
-		Gets the death date from the infobox. 
+		Gets the death date from the infobox.
 		If it is not available in the infobox (or it cannot parse it) it uses Wikidata.
-		
+
 		Parameters
 		----------
 		raw : boolean (False)
 			If True it also returns the raw text from the infobox.
-		
+
 		Returns
 		-------
 		d : tuple
@@ -1706,7 +1706,7 @@ class band(article):
 		'''
 		Gets the formation place for the band.
 		Uses Wikidata and Wikipedia
-		
+
 		Returns
 		-------
 		place_name : str
@@ -1771,7 +1771,7 @@ class band(article):
 			else:
 				self._formation_place = (out[0],'NULL',out[1],out[2])
 
-				
+
 		return self._formation_place
 
 	def spotify_id(self):
@@ -1821,7 +1821,7 @@ class band(article):
 class Occ(object):
 	'''
 	Occupation classifier based on Wikipedia and Wikidata information.
-	
+
 	Examples
 	--------
 	>>> C = johnny5.Occ()
@@ -1867,7 +1867,7 @@ class Occ(object):
 		prob_ratio : float
 			Ratio between the most likely occupation, and the second most likely occupation.
 			If the biography belongs to the training set, it will return prob_ratio=0.
-		'''	
+		'''
 		if (str(article.curid()) in self.train_keys)&(not override_train):
 			return (self.train[str(article.curid())],0)
 		else:
@@ -1963,7 +1963,7 @@ class Occ(object):
 		----------
 		article : johnny5.biography
 			Biography to classify.
-		
+
 		Returns
 		-------
 		features : collections.defaultdict
@@ -2015,4 +2015,3 @@ def search(s):
 		return article(p['pageid'])
 	else:
 		return None
-	

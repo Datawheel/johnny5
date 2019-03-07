@@ -120,7 +120,7 @@ def country(coords,path='',save=True,GAPI_KEY=None):
 def chunker(seq, size):
 	'''
 	Used to iterate a list by chunks.
-	
+
 	Parameters
 	----------
 	seq : list (or iterable)
@@ -264,7 +264,7 @@ def _wd_instances(cl):
 			filename=filename[0]
 		_wd_clear()
 		print('Parsing the dump ',filename)
-		print "grep '<[^>]*P31>.*<[^>]*"+cl+"> \.' "+path_os+filename+"  > "+path_os+'instances/'+cl+"_temp.nt"
+		print("grep '<[^>]*P31>.*<[^>]*"+cl+"> \.' "+path_os+filename+"  > "+path_os+'instances/'+cl+"_temp.nt")
 		os.system("grep '<[^>]*P31>.*<[^>]*"+cl+"> \.' "+path_os+filename+"  > "+path_os+'instances/'+cl+"_temp.nt")
 		os.system("mv "+path_os+'instances/'+cl+"_temp.nt "+path_os+'instances/'+cl+".nt")
 	lines = open(path+'instances/'+cl+".nt").read().split('\n')
@@ -285,7 +285,7 @@ def _wd_subclasses(cl):
 			filename=filename[0]
 		_wd_clear()
 		print('Parsing the dump ',filename)
-		print "grep '<[^>]*P279>.*<[^>]*"+cl+"> \.' "+path_os+filename+"  > "+path_os+'subclasses/'+cl+"_temp.nt"
+		print("grep '<[^>]*P279>.*<[^>]*"+cl+"> \.' "+path_os+filename+"  > "+path_os+'subclasses/'+cl+"_temp.nt")
 		os.system("grep '<[^>]*P279>.*<[^>]*"+cl+"> \.' "+path_os+filename+"  > "+path_os+'subclasses/'+cl+"_temp.nt")
 		os.system("mv "+path_os+'subclasses/'+cl+"_temp.nt "+path_os+'subclasses/'+cl+".nt")
 	lines = open(path+'subclasses/'+cl+".nt").read().split('\n')
@@ -393,13 +393,13 @@ def _dump_filename(wiki):
 	if wiki=='wd':
 		files = os.listdir(path)
 		filename = [f for f in files if 'latest-all' in f]
-		print len(filename)
-		print filename
+		print(len(filename))
+		print(filename)
 		if len(filename) == 1:
 			filename=filename[0]
 			return filename
 		elif len(filename)>1:
-			pass 
+			pass
 			# Handle multiple wikidata dumps
 		else:
 			#Handle missing wikidata dump
@@ -453,7 +453,7 @@ def check_wpdump():
 def check_wddump():
 	'''
 	Used to check whether the Wikidata dump found on file is up to date.
-	
+
 	Returns
 	-------
 	status : boolean
@@ -483,7 +483,7 @@ def _path(path):
 def download_latest():
 	'''
 	Downloads the latest Wikidata RDF dump.
-	
+
 	If the dump is updated, it will delete all the instances files.
 	'''
 	url,top_date = latest_wddump()
@@ -501,7 +501,7 @@ def download_latest():
 	if (filename in set(os.listdir(path)))&(filename.replace('.gz','') not in set(os.listdir(path))):
 		print("Unzipping file")
 		path_os = _path(path)
-		print 'gunzip '+path_os+filename
+		print('gunzip '+path_os+filename)
 		# os.system('gunzip '+path_os+filename)
 		drop_instances=True
 
@@ -514,13 +514,9 @@ def download_latest():
 		# os.remove(path+filename)
 		remove = os.listdir(path+'instances/')
 		for f in remove:
-			print 'Remove',path+'instances/'+f
+			print('Remove',path+'instances/'+f)
 			# os.remove(path+'instances/'+f)
 		remove = os.listdir(path+'subclasses/')
 		for f in remove:
-			print 'Remove',path+'subclasses/'+f
+			print('Remove',path+'subclasses/'+f)
 			# os.remove(path+'subclasses/'+f)
-
-
-
-
