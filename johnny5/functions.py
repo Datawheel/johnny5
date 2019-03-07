@@ -298,37 +298,43 @@ def all_wikipages(update=False, path=None):
 	'''Downloads all the names of the Wikipedia articles'''
 	if not path:
 		path = _dumps_path()
+
 	files = os.listdir(path)
 
 	if 'enwiki-allarticles.txt' not in files or update:
-		if ('enwiki-latest-abstract.xml' not in files) or update:
+		if 'enwiki-latest-abstract.xml' not in files or update:
 			print('Downloading dump')
 			urlretrieve(
-				'https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-abstract.xml',
-				'{}enwiki-latest-abstract.xml'.format(path))
-		if ('enwiki-latest-titles.xml' not in files)|update:
+				'https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-abstract.xml.gz',
+				'{}enwiki-latest-abstract.xml.gz'.format(path)
+			)
+			os.system('gunzip {}enwiki-latest-abstract.xml.gz'.format(path))
+		if 'enwiki-latest-titles.xml' not in files or update:
 			print('Parsing titles from dump')
-			os.system("grep '<title>'  "+_path(path)+"enwiki-latest-abstract.xml > "+_path(path)+"enwiki-latest-titles.xml")
+			os.system("grep '<title>'  {}enwiki-latest-abstract.xml > {}enwiki-latest-titles.xml".format(
+				_path(path), _path(path)
+			))
 
 		print('Cleaning titles')
 
-		f = codecs.open(path+'enwiki-latest-titles.xml',encoding='utf-8')
-		g = open(path+'enwiki-allarticles.txt',mode='w')
+		f = codecs.open('{}enwiki-latest-titles.xml'.format(path), encoding='utf-8')
+		g = open('{}enwiki-allarticles.txt'.format(path), mode='w')
 
 		while True:
 			line = f.readline()
 			line = line[17:-9].strip()
 			g.write((line+'\n').encode('utf-8'))
-			if not line: break
+			if not line:
+				break
 
 		f.close()
 		g.close()
 
 		print('Cleaning up')
 
-		os.remove(path+'enwiki-latest-titles.xml')
+		os.remove('{}enwiki-latest-titles.xml'.format(path))
 
-	titles = set(codecs.open(path+'enwiki-allarticles.txt',encoding='utf-8').read().split('\n'))
+	titles = set(codecs.open('{}enwiki-allarticles.txt'.format(path), encoding='utf-8').read().split('\n'))
 	titles.discard('')
 
 	return titles
@@ -490,7 +496,6 @@ def _path(path):
 	for c in [' ','(',')']:
 		path_os = path_os.replace(c,'\\'+c)
 	return path_os
-
 
 
 def download_latest():
