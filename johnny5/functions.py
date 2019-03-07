@@ -8,12 +8,14 @@ from .parse_functions import drop_comments
 from pandas import DataFrame
 from .query import wd_q,wp_q,_rget
 from itertools import chain
+
 try:
 	import urllib2
-	from urllib import urlretrieve
 except:
 	print('Warning: No module urllib2')
 	pass
+
+from urllib.request import urlretrieve
 from bs4 import BeautifulSoup
 
 wiki_API = 'https://en.wikipedia.org/w/api.php?action=query&format=json'
@@ -292,33 +294,44 @@ def _wd_subclasses(cl):
 	subclasses = set([line.split(' ')[0].split('/')[-1].split('>')[0].split('S')[0].split('-')[0] for line in lines if line != ''])
 	return subclasses
 
-def all_wikipages(update=False):
+def all_wikipages(update=False, path=None):
 	'''Downloads all the names of the Wikipedia articles'''
-	path = _dumps_path()
+	if not path:
+		path = _dumps_path()
 	files = os.listdir(path)
-	if ('enwiki-allarticles.txt' not in files)|update:
-		if ('enwiki-latest-abstract.xml' not in files)|update:
+
+	if 'enwiki-allarticles.txt' not in files or update:
+		if ('enwiki-latest-abstract.xml' not in files) or update:
 			print('Downloading dump')
-			urlretrieve('https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-abstract.xml',path+'enwiki-latest-abstract.xml')
+			urlretrieve(
+				'https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-abstract.xml',
+				'{}enwiki-latest-abstract.xml'.format(path))
 		if ('enwiki-latest-titles.xml' not in files)|update:
 			print('Parsing titles from dump')
 			os.system("grep '<title>'  "+_path(path)+"enwiki-latest-abstract.xml > "+_path(path)+"enwiki-latest-titles.xml")
+
 		print('Cleaning titles')
+
 		f = codecs.open(path+'enwiki-latest-titles.xml',encoding='utf-8')
 		g = open(path+'enwiki-allarticles.txt',mode='w')
+
 		while True:
 			line = f.readline()
 			line = line[17:-9].strip()
 			g.write((line+'\n').encode('utf-8'))
 			if not line: break
+
 		f.close()
 		g.close()
+
 		print('Cleaning up')
+
 		os.remove(path+'enwiki-latest-titles.xml')
+
 	titles = set(codecs.open(path+'enwiki-allarticles.txt',encoding='utf-8').read().split('\n'))
 	titles.discard('')
-	return titles
 
+	return titles
 
 
 def _dumps_path():
