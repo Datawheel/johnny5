@@ -323,7 +323,7 @@ def all_wikipages(update=False, path=None):
 		while True:
 			line = f.readline()
 			line = line[17:-9].strip()
-			g.write((line+'\n').encode('utf-8'))
+			g.write((line+'\n'))
 			if not line:
 				break
 
@@ -435,6 +435,7 @@ def latest_wddump():
 	# url = 'http://tools.wmflabs.org/wikidata-exports/rdf/exports.html'
 	# url = 'https://dumps.wikimedia.org/other/wikidata/'
 	url = 'https://dumps.wikimedia.org/wikidatawiki/entities/'
+
 	conn = urllib2.urlopen(url)
 	html = conn.read()
 	soup = BeautifulSoup(html, "html.parser")
@@ -450,9 +451,11 @@ def latest_wddump():
 					except:
 						pass
 			break
+
 	latest_dump_date = link_date
-	latest_dump_url  = url+link
-	return latest_dump_url,latest_dump_date
+	latest_dump_url  = url + link
+
+	return latest_dump_url, latest_dump_date
 
 
 
@@ -498,43 +501,51 @@ def _path(path):
 	return path_os
 
 
-def download_latest():
+def download_latest(path=None):
 	'''
 	Downloads the latest Wikidata RDF dump.
 
 	If the dump is updated, it will delete all the instances files.
 	'''
-	url,top_date = latest_wddump()
+	url, top_date = latest_wddump()
 	filename = url.split('/')[-1].split('.')[0]+'_'+str(top_date).split(' ')[0]+'.nt.gz'
-	path = _dumps_path()
+	if not path:
+		path = _dumps_path()
 
-	drop_instances=False
-	if (filename.replace('.gz','') not in set(os.listdir(path)))&(filename not in set(os.listdir(path))):
-		print("Downloading file from:",url)
-		print("Saving file into",path+filename)
-		# urlretrieve(url, path+filename)
+	drop_instances = False
+
+	if filename.replace('.gz', '') not in set(os.listdir(path)) and filename not in set(os.listdir(path)):
+		print("Downloading file from: {}".format(url))
+		print("Saving file into {}".format(path + filename))
+		urlretrieve(url, '{}{}'.format(path, filename))
 	else:
 		print("No update needed.")
 
-	if (filename in set(os.listdir(path)))&(filename.replace('.gz','') not in set(os.listdir(path))):
+	if filename.replace('.gz', '') not in set(os.listdir(path)) and filename in set(os.listdir(path)):
 		print("Unzipping file")
 		path_os = _path(path)
-		print('gunzip '+path_os+filename)
-		# os.system('gunzip '+path_os+filename)
-		drop_instances=True
+		print('gunzip {}{}'.format(path_os, filename))
+		os.system('gunzip {}{}'.format(path_os, filename))
+		drop_instances = True
 
-	remove = [f for f in os.listdir(path) if ('latest-all' in f)&(f != filename.replace('.gz',''))&(f != filename)]
-	if (len(remove) != 0)&drop_instances:
+	remove = [f for f in os.listdir(path) if 'latest-all' in f and f != filename.replace('.gz','') and f != filename]
+
+	if len(remove) != 0 and drop_instances:
 		print('Cleaning up')
+
 	for f in remove:
-		os.remove(path+f)
+		os.remove(path + f)
+
 	if drop_instances:
 		# os.remove(path+filename)
-		remove = os.listdir(path+'instances/')
+		remove = os.listdir(path + 'instances/')
+
 		for f in remove:
-			print('Remove',path+'instances/'+f)
+			print('Remove ', path + 'instances/' + f)
 			# os.remove(path+'instances/'+f)
-		remove = os.listdir(path+'subclasses/')
+
+		remove = os.listdir(path + 'subclasses/')
+
 		for f in remove:
-			print('Remove',path+'subclasses/'+f)
+			print('Remove ', path + 'subclasses/' + f)
 			# os.remove(path+'subclasses/'+f)
