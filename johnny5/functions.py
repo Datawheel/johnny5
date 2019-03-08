@@ -9,13 +9,7 @@ from pandas import DataFrame
 from .query import wd_q,wp_q,_rget
 from itertools import chain
 
-try:
-	import urllib2
-except:
-	print('Warning: No module urllib2')
-	pass
-
-from urllib.request import urlretrieve
+from urllib.request import *
 from bs4 import BeautifulSoup
 
 wiki_API = 'https://en.wikipedia.org/w/api.php?action=query&format=json'
@@ -436,13 +430,13 @@ def latest_wddump():
 	# url = 'https://dumps.wikimedia.org/other/wikidata/'
 	url = 'https://dumps.wikimedia.org/wikidatawiki/entities/'
 
-	conn = urllib2.urlopen(url)
+	conn = urlopen(url)
 	html = conn.read()
 	soup = BeautifulSoup(html, "html.parser")
 
 	for line in str(soup.find('pre')).split('\n'):
 		link = BeautifulSoup(line, "html.parser").find('a').get('href',None)
-		if link=='latest-all.nt.gz':
+		if link == 'latest-all.nt.gz':
 			for d in line.split(' '):
 				if d!='':
 					try:
