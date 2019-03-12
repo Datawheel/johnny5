@@ -176,21 +176,27 @@ def wd_instances(cl, include_subclasses=False, return_subclasses=False):
 		queried = set([cl])
 		toquery = set([])
 
+	print(queried)
+	print(toquery)
+	print(_dumps_path())
+
 	while len(toquery) != 0:
 		for c in toquery:
 			query = _wd_subclasses(c)
 			toquery.discard(c)
-			queried.add(c)
-			toquery = toquery|query.difference(queried)
-			break
+			print(query)
+
+			# queried.add(c)
+			# toquery = toquery|query.difference(queried)
+			# break
 
 	instances = set([])
 
 	if include_subclasses:
-		print("Found a total of "+str(len(queried))+" subclasses.")
+		print("Found a total of {}  subclasses.".format(str(len(queried))))
 
-	for c in queried:
-		instances = instances|_wd_instances(c)
+	# for c in queried:
+	# 	instances = instances|_wd_instances(c)
 
 	if return_subclasses and include_subclasses:
 		return instances, queried
@@ -271,31 +277,36 @@ def _wd_instances(cl):
 	return instances
 
 def _wd_subclasses(cl):
-	'''Gets all the subclasses of the given class.'''
+	""" Gets all the subclasses of the given class. """
 	path = _dumps_path()
 	path_os = _path(path)
 	files = os.listdir(path)
-	subclasses = os.listdir(path+'subclasses/')
-	if cl+'.nt' not in subclasses:
+	subclasses = os.listdir(path + 'subclasses/')
+
+	if cl + '.nt' not in subclasses:
 		filename = [f for f in files if 'latest-all' in f]
+
 		if len(filename) == 0:
 			raise NameError('No dump found, please run:\n\t>>> download_latest()')
 		else:
 			filename=filename[0]
+
 		_wd_clear()
+
 		print('Parsing the dump ',filename)
 		print("grep '<[^>]*P279>.*<[^>]*"+cl+"> \.' "+path_os+filename+"  > "+path_os+'subclasses/'+cl+"_temp.nt")
+
 		os.system("grep '<[^>]*P279>.*<[^>]*"+cl+"> \.' "+path_os+filename+"  > "+path_os+'subclasses/'+cl+"_temp.nt")
 		os.system("mv "+path_os+'subclasses/'+cl+"_temp.nt "+path_os+'subclasses/'+cl+".nt")
+
 	lines = open(path+'subclasses/'+cl+".nt").read().split('\n')
 	subclasses = set([line.split(' ')[0].split('/')[-1].split('>')[0].split('S')[0].split('-')[0] for line in lines if line != ''])
+
 	return subclasses
 
-def all_wikipages(update=False, path=None):
+def all_wikipages(update=False):
 	'''Downloads all the names of the Wikipedia articles'''
-	if not path:
-		path = _dumps_path()
-
+	path = _dumps_path()
 	files = os.listdir(path)
 
 	if 'enwiki-allarticles.txt' not in files or update:
@@ -338,12 +349,17 @@ def all_wikipages(update=False, path=None):
 
 
 def _dumps_path():
-	'''Returns the path where the dumps are stored.'''
-	path = os.path.split(__file__)[0]+'/data/'
+	""" Returns the path where the dumps are stored.
+	Note that the path can be set in the first line of a dumps.txt file.
+	"""
+	path = os.path.split(__file__)[0] + '/data/'
 	files = os.listdir(path)
+
 	if 'dumps.txt' in files:
-		path = open(path+'dumps.txt').read().split('\n')[0]
+		path = open(path + 'dumps.txt').read().split('\n')[0]
+
 	return path
+
 
 def _set_new_dumps_path(new_path):
 	'''Modifies the dump'''
