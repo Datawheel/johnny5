@@ -141,9 +141,8 @@ def _dms2dd(lat):
 
 
 
-def wd_instances(cl,include_subclasses=False,return_subclasses=False):
-	'''
-	Gets all the instances of the given class.
+def wd_instances(cl, include_subclasses=False, return_subclasses=False):
+	""" Gets all the instances of the given class.
 
 	Parameters
 	----------
@@ -167,8 +166,8 @@ def wd_instances(cl,include_subclasses=False,return_subclasses=False):
 	To get all universities:
 	>>> wd_instances('Q3918')
 	To get all humans:
-	>>> wd_instances('Q5',include_subclasses=False)
-	'''
+	>>> wd_instances('Q5', include_subclasses=False)
+	"""
 	if include_subclasses:
 		queried = set([])
 		toquery = set([cl])
@@ -184,17 +183,21 @@ def wd_instances(cl,include_subclasses=False,return_subclasses=False):
 			queried.add(c)
 			toquery = toquery|query.difference(queried)
 			break
+
 	instances = set([])
+
 	if include_subclasses:
 		print("Found a total of "+str(len(queried))+" subclasses.")
+
 	for c in queried:
 		instances = instances|_wd_instances(c)
-	if return_subclasses&include_subclasses:
-		return instances,queried
+
+	if return_subclasses and include_subclasses:
+		return instances, queried
 	else:
 		return instances
 
-def wd_subclasses(cl,include_subclasses=False):
+def wd_subclasses(cl, include_subclasses=False):
 	'''
 	Gets all the subclasses of the given class.
 
@@ -496,11 +499,10 @@ def _path(path):
 
 
 def download_latest(path=None):
-	'''
-	Downloads the latest Wikidata RDF dump.
+	""" Downloads the latest Wikidata RDF dump.
 
 	If the dump is updated, it will delete all the instances files.
-	'''
+	"""
 	url, top_date = latest_wddump()
 	filename = url.split('/')[-1].split('.')[0]+'_'+str(top_date).split(' ')[0]+'.nt.gz'
 	if not path:
@@ -527,8 +529,8 @@ def download_latest(path=None):
 	if len(remove) != 0 and drop_instances:
 		print('Cleaning up')
 
-	for f in remove:
-		os.remove(path + f)
+		for f in remove:
+			os.remove(path + f)
 
 	if drop_instances:
 		# os.remove(path+filename)
