@@ -186,18 +186,18 @@ def wd_instances(cl, include_subclasses=False, return_subclasses=False):
 		toquery = set([])
 
 	print(queried)
-	print(toquery)
+	print(to_query)
 	print(_dumps_path())
 
-	while len(toquery) != 0:
-		for c in toquery:
-			query = _wd_subclasses(c)
-			toquery.discard(c)
-			queried.add(c)
-			print(query)
+	while len(to_query) != 0:
+		c = next(iter(to_query))
+		query = _wd_subclasses(c)
+		to_query.discard(c)
+		queried.add(c)
+		to_query = to_query|query.difference(queried)
 
-			# toquery = toquery|query.difference(queried)
-			# break
+	print(queried)
+	print(to_query)
 
 	instances = set([])
 
@@ -509,8 +509,8 @@ def check_wpdump():
 	dt = time.ctime(os.path.getmtime(path + 'enwiki-latest-abstract.xml'))
 	print('Dump downloaded on:')
 	print('\t{} {} {}'.format(
-			dt.split(' ')[1]
-			dt.split(' ')[3]
+			dt.split(' ')[1],
+			dt.split(' ')[3],
 			dt.split(' ')[-1]
 		))
 	print('To update run:\n\t>>> all_wikipages(update=True)')
