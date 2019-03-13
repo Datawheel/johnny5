@@ -74,7 +74,9 @@ def country(coords, path='', save=True, GAPI_KEY=None):
 	country : (name,code) tuple
 		Country name and 2-digit country code.
 	'''
-	key = os.environ.get(GAPI_KEY)
+	key = None
+	if GAPI_KEY:
+		key = os.environ.get(GAPI_KEY)
 
 	latlng = '{},{}'.format(str(coords[0]), str(coords[1]))
 
@@ -85,7 +87,7 @@ def country(coords, path='', save=True, GAPI_KEY=None):
 
 	r = _rget(url).json()
 
-	ZERO_RESULTS = False
+	zero_results = False
 
 	if r['status'] == 'OVER_QUERY_LIMIT':
 		time.sleep(1)
@@ -94,20 +96,21 @@ def country(coords, path='', save=True, GAPI_KEY=None):
 		if r['status'] == 'OVER_QUERY_LIMIT':
 			raise NameError('Query limit reached')
 		elif r['status'] == 'ZERO_RESULTS':
-			ZERO_RESULTS = True
+			zero_results = True
 		else:
 			print(r)
 			raise NameError('Unrecognized error')
+
 	if save:
-		f = open(path+latlng+'.json','w')
-		json.dump(r,f)
+		f = open(path + latlng + '.json','w')
+		json.dump(r, f)
 		f.close()
 
-	country = ('NULL','NULL')
+	country = ('NULL', 'NULL')
 
-	if not ZERO_RESULTS:
+	if not zero_results:
 		for res in r['results']:
-			for rr in  res[u'address_components']:
+			for rr in res[u'address_components']:
 				if 'country' in  rr['types']:
 					country = (rr['long_name'], rr['short_name'])
 				if country != ('NULL', 'NULL'):
@@ -119,7 +122,7 @@ def country(coords, path='', save=True, GAPI_KEY=None):
 
 
 def chunker(seq, size):
-	'''
+	"""
 	Used to iterate a list by chunks.
 
 	Parameters
@@ -133,7 +136,7 @@ def chunker(seq, size):
 	-------
 	chunks : list
 		List of lists (chunks)
-	'''
+	"""
 	return (seq[pos:pos + size] for pos in range(0, len(seq), size))
 
 

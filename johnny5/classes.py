@@ -13,9 +13,9 @@ from pandas import DataFrame, read_csv, concat, merge
 from numpy import mean
 
 try:
-    import cPickle as pickle
+	import cPickle as pickle
 except:
-    import pickle
+	import pickle
 try:
 	import spotipy
 except:
@@ -26,7 +26,7 @@ from .query import wd_q, wp_q, _string, _isnum, _rget, get_soup
 from .parse_functions import drop_comments, find_nth, parse_date,get_links, correct_titles, parse_ints, parse_p
 
 
-class article:
+class Article:
 	"""
 	This is the main class for this module.
 	All other classes belong to this class.
@@ -99,7 +99,7 @@ class article:
 		out+= 'curid : '+str(self.I['curid'])+'\n' if self.I['curid'] is not None else 'curid : \n'
 		out+= 'title : '+self.I['title']+'\n' if self.I['title'] is not None else 'title : \n'
 		out+= 'wdid  : '+self.I['wdid'] if self.I['wdid'] is not None else 'wdid  : '
-		return out.encode('utf-8')
+		return out
 
 	def __str__(self):
 		self.redirect()
@@ -116,7 +116,7 @@ class article:
 		else:
 			out+= 'wdid  : None\n'
 		out+= 'L     : '+str(self.L())
-		return out.encode('utf-8')
+		return out
 
 	def _missing_wd(self):
 		'''
@@ -1014,19 +1014,19 @@ class article:
 			return self._isa_values[0]
 
 
-class place(article):
-	'''Places (includes methods to get coordinates).'''
+class Place(Article):
+	""" Places (includes methods to get coordinates). """
 	def __init__(self,I,Itype=None):
-		super(place, self).__init__(I,Itype=None)
+		super(Place, self).__init__(I,Itype=None)
 		self._coords = None
 		self._is_city = None
 		self._wpcities = None
 		self._country = None
 
 	def __str__(self):
-		out = super(place, self).__str__()
-		out+= '\n'
-		out+= 'coords: ('+str(self.coords()[0])+','+str(self.coords()[1])+')'
+		out = super(Place, self).__str__()
+		out += '\n'
+		out += 'coords: ('+str(self.coords()[0])+','+str(self.coords()[1])+')'
 		return out
 
 	def coords(self,wiki='wp'):
@@ -1040,37 +1040,43 @@ class place(article):
 			Default is 'wp'
 		'''
 		if self._coords is None:
-			if wiki=='wd':
+			if wiki == 'wd':
 				try:
 					coords = self.wd_prop('P625')[0]
 					self._coords = (coords['latitude'],coords['longitude'])
 				except:
 					self._coords = ('NA','NA')
 			else:
-				wiki ='en' if wiki == 'wp' else wiki
+				wiki = 'en' if wiki == 'wp' else wiki
+
 				try:
-					if wiki !='en':
+					if wiki != 'en':
 						r = wp_q({'prop':'coordinates',"titles":self.langlinks(wiki)},lang=wiki)
 					else:
 						r = wp_q({'prop':'coordinates',"pageids":self.curid()})
+
 					coords = list(r['query']['pages'].values())[0]['coordinates'][0]
 					self._coords = (coords['lat'],coords['lon'])
 				except:
 					wikicode = mwparserfromhell.parse(self.content())
 					templates = wikicode.filter_templates()
-					lat,lon = ('NA','NA')
+					lat, lon = ('NA', 'NA')
 					names = set([template.name.strip().lower() for template in templates])
+
 					if 'coord' in names:
 						for template in templates:
 							name = template.name.strip().lower()
+
 							if name == 'coord':
 								lat = []
 								lon = []
 								values = template.params
 								dms = False
+
 								for i,val in enumerate(values):
 									if (val.name.lower().strip() == 'format')&(val.value.lower().strip()=='dms'):
 										dms = True
+
 								if not dms:
 									for i,val in enumerate(values):
 										lat.append(val)
@@ -1083,6 +1089,7 @@ class place(article):
 									lat,lon= (_dms2dd(lat),_dms2dd(lon))
 								else:
 									lat,lon = (float(str(values[0])),float(str(values[1])))
+
 								break
 					else:
 						parameters = {'latd':'NA','latns':'','longd':'NA','longew':''}
@@ -1102,10 +1109,12 @@ class place(article):
 									parameters['longd'] *= -1
 								break
 						lat,lon = (parameters['latd'],parameters['longd'])
+
 					self._coords = (lat,lon)
+
 		return self._coords
 
-	def country(self,GAPI_KEY=None,name=False):
+	def country(self, GAPI_KEY=None, name=False):
 		'''
 		Uses google places API to get the country of the given place.
 
@@ -1122,18 +1131,18 @@ class place(article):
 			Country code.
 		'''
 		if self._country is None:
-			ctr,ccode = country(self.coords(),save=False,GAPI_KEY=GAPI_KEY)
-			self._country = (ctr,ccode)
+			ctr, ccode = country(self.coords(), save=False, GAPI_KEY=GAPI_KEY)
+			self._country = (ctr, ccode)
 		if name:
 			return self._country[0]
 		else:
 			return self._country[1]
 
 
-class song(article):
+class Song(Article):
 	'''Class for songs.'''
 	def __init__(self,I,Itype=None):
-		super(song, self).__init__(I,Itype=None,slow_connection=True)
+		super(Song, self).__init__(I,Itype=None,slow_connection=True)
 		self.slow_connection = False
 		self._is_song = None
 		self._wpsong  = None
@@ -1258,10 +1267,10 @@ class song(article):
 		return article(self.wd_prop('P175')[0]['id']).title()
 
 
-class Biography(article):
+class Biography(Article):
 	""" Class for biographies of real people. """
 	def __init__(self, I, Itype=None):
-		super(biography, self).__init__(I, Itype=None)
+		super(Biography, self).__init__(I, Itype=None)
 		self._is_bio = None
 		self._wpbio = None
 		self._birth_date = None
@@ -1276,18 +1285,22 @@ class Biography(article):
 		self.redirect()
 		out = ''
 		self.title(),self.curid(),self.wdid()
+
 		if not self.no_wp:
-			out+= 'curid : '+str(self.curid())+'\n'
-			out+= 'title : '+self.title()+'\n'
+			out += 'curid : '+str(self.curid())+'\n'
+			out += 'title : '+self.title()+'\n'
 		else:
-			out+= 'curid : None\n'
-			out+= 'name  : '+self.name()+'\n' if self.name() !='NULL' else 'name  : None\n'
+			out += 'curid : None\n'
+			out += 'name  : '+self.name()+'\n' if self.name() !='NULL' else 'name  : None\n'
+
 		if not self.no_wd:
-			out+= 'wdid  : '+self.wdid()+'\n'
+			out += 'wdid  : '+self.wdid()+'\n'
 		else:
-			out+= 'wdid  : None\n'
-		out+= 'L     : '+str(self.L())
-		return out.encode('utf-8')
+			out += 'wdid  : None\n'
+
+		out += 'L     : '+str(self.L())
+
+		return out
 
 	def name(self):
 		if self._name is None:
@@ -1323,7 +1336,7 @@ class Biography(article):
 		genders = self.wd_prop('P21')
 		if len(genders)>0:
 			gender_wdid = self.wd_prop('P21')[0]['id']
-			return article(gender_wdid).data_wd()['labels']['en']['value']
+			return Article(gender_wdid).data_wd()['labels']['en']['value']
 		else:
 			return None
 
@@ -1477,7 +1490,7 @@ class Biography(article):
 		else:
 			return d
 
-	def death_date(self,raw=False):
+	def death_date(self, raw=False):
 		'''
 		Gets the death date from the infobox.
 		If it is not available in the infobox (or it cannot parse it) it uses Wikidata.
@@ -1538,46 +1551,46 @@ class Biography(article):
 			for box in self.infobox().values():
 				if 'birth_place' in box.keys():
 					for name in get_links(box[u'birth_place']):
-						pl = place(name)
+						pl = Place(name)
 						if pl.coords()[0] != 'NA':
 							self._birth_place = pl
 							break
 					if self._birth_place is not None:
 						break
+
 		if self._birth_place is None:
 			for val in self.wd_prop('P19'):
 				if 'id' in val.keys():
-					pl = place(val['id'])
+					pl = Place(val['id'])
 					if pl.coords()[0] != 'NA':
 						self._birth_place = pl
 						break
+
 		return self._birth_place
 
 	def death_place(self):
-		if (self._death_place is None)&(self.alive() == 'yes'):
+		if self._death_place is None and self.alive() == 'yes':
 			self._death_place = 'alive'
+
 		if self._death_place is None:
 			for box in self.infobox().values():
 				if 'death_place' in box.keys():
 					for name in get_links(box[u'death_place']):
-						pl = place( name)
+						pl = Place( name)
 						if pl.coords()[0] != 'NA':
 							self._death_place = pl
 							break
 					if self._death_place is not None:
 						break
+
 		if self._death_place is None:
 			for val in self.wd_prop('P20'):
 				if 'id' in val.keys():
-					pl = place(val['id'])
+					pl = Place(val['id'])
 					if pl.coords()[0] != 'NA':
 						self._death_place = pl
 						break
 		return self._death_place
-
-
-
-
 
 	def occupation(self,C=None,return_all=False,override_train=False):
 		'''
@@ -1622,14 +1635,14 @@ class Biography(article):
 				return self._occ[0][0],prob_ratio
 
 
-class band(article):
+class Band(Article):
 	'''
 	Class for music bands.
 	It links to Spotify as well.
 	IT SHOULD ALSO LINK TO GENIUS
 	'''
 	def __init__(self,I,Itype=None):
-		super(band, self).__init__(I,Itype=None)
+		super(Band, self).__init__(I,Itype=None)
 		self._is_band = None
 		self._origin = None
 		self._name = None
@@ -1646,7 +1659,7 @@ class band(article):
 			tps = []
 			for i in self.wd_prop('P31'):
 				try:
-					tps.append(article(i['id']).title())
+					tps.append(Article(i['id']).title())
 				except:
 					pass
 			self._btypes = tps
@@ -1665,7 +1678,7 @@ class band(article):
 			genres = []
 			for g in self.wd_prop('P136'):
 				try:
-					genres.append(article(g['id']).title())
+					genres.append(Article(g['id']).title())
 				except:
 					pass
 			self._genres = genres
@@ -1822,7 +1835,7 @@ class band(article):
 # class CTY(object):
 
 
-class Occ(object):
+class Occ:
 	'''
 	Occupation classifier based on Wikipedia and Wikidata information.
 
