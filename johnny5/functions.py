@@ -52,7 +52,7 @@ def get_multiple_image(curid):
 	return box
 
 
-def country(coords,path='',save=True,GAPI_KEY=None):
+def country(coords, path='', save=True, GAPI_KEY=None):
 	'''
 	WE NEED TO CHANGE THIS FUNCTION TO MAKE IT INDEPENDENT OF GAPI
 
@@ -74,17 +74,14 @@ def country(coords,path='',save=True,GAPI_KEY=None):
 	country : (name,code) tuple
 		Country name and 2-digit country code.
 	'''
-	try:
-		key = os.environ[GAPI_KEY]
-	except:
-		key = None
+	key = os.environ.get(GAPI_KEY)
 
-	latlng = str(coords[0])+','+str(coords[1])
+	latlng = '{},{}'.format(str(coords[0]), str(coords[1]))
 
 	if key is not None:
-		url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng='+latlng+'&project=Pantheon&key='+key
+		url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng=' + latlng + '&project=Pantheon&key=' + key
 	else:
-		url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng='+latlng
+		url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng=' + latlng
 
 	r = _rget(url).json()
 
@@ -111,11 +108,11 @@ def country(coords,path='',save=True,GAPI_KEY=None):
 	if not ZERO_RESULTS:
 		for res in r['results']:
 			for rr in  res[u'address_components']:
-				if ('country' in  rr['types']):
-					country = (rr['long_name'],rr['short_name'])
-				if country != ('NULL','NULL'):
+				if 'country' in  rr['types']:
+					country = (rr['long_name'], rr['short_name'])
+				if country != ('NULL', 'NULL'):
 					break
-			if country != ('NULL','NULL'):
+			if country != ('NULL', 'NULL'):
 				break
 
 	return country
@@ -149,7 +146,6 @@ def _dms2dd(lat):
     return dd
 
 
-
 def wd_instances(cl, include_subclasses=False, return_subclasses=False):
 	""" Gets all the instances of the given class.
 
@@ -179,33 +175,34 @@ def wd_instances(cl, include_subclasses=False, return_subclasses=False):
 	"""
 	if include_subclasses:
 		queried = set([])
-		toquery = set([cl])
+		to_query = set([cl])
 		print("Retrieving subclasses.")
 	else:
 		queried = set([cl])
-		toquery = set([])
+		to_query = set([])
 
-	print(queried)
-	print(to_query)
-	print(_dumps_path())
+	# print(queried)
+	# print(to_query)
+	# print(_dumps_path())
 
 	while len(to_query) != 0:
+		print(to_query)
 		c = next(iter(to_query))
 		query = _wd_subclasses(c)
 		to_query.discard(c)
 		queried.add(c)
-		to_query = to_query|query.difference(queried)
+		to_query.update(query.difference(queried))
 
-	print(queried)
-	print(to_query)
+	# print(queried)
+	# print(to_query)
 
 	instances = set([])
 
 	if include_subclasses:
-		print("Found a total of {}  subclasses.".format(str(len(queried))))
+		print("Found a total of {} subclasses.".format(str(len(queried))))
 
-	# for c in queried:
-	# 	instances = instances|_wd_instances(c)
+	for c in queried:
+		instances.update(_wd_instances(c))
 
 	if return_subclasses and include_subclasses:
 		return instances, queried
@@ -283,15 +280,19 @@ def _wd_instances(cl):
 		if len(filename) == 0:
 			raise NameError('No dump found, please run:\n\t>>> download_latest()')
 		else:
-			filename=filename[0]
+			filename = filename[0]
 
 		_wd_clear()
 
 		print('Parsing the dump ',filename)
-		print("grep '<[^>]*P31>.*<[^>]*"+cl+"> \.' "+path_os+filename+"  > "+path_os+'instances/'+cl+"_temp.nt")
 
-		os.system("grep '<[^>]*P31>.*<[^>]*"+cl+"> \.' "+path_os+filename+"  > "+path_os+'instances/'+cl+"_temp.nt")
-		os.system("mv "+path_os+'instances/'+cl+"_temp.nt "+path_os+'instances/'+cl+".nt")
+		statement = "grep '<[^>]*P31>.*<[^>]*"+cl+"> \.' "+path_os+filename+"  > "+path_os+'instances/'+cl+"_temp.nt"
+		print(statement)
+		os.system(statement)
+
+		statement = "mv "+path_os+'instances/'+cl+"_temp.nt "+path_os+'instances/'+cl+".nt"
+		print(statement)
+		os.system(statement)
 
 	lines = open(path+'instances/'+cl+".nt").read().split('\n')
 	instances = set([line.split(' ')[0].split('/')[-1].split('>')[0].split('S')[0].split('-')[0] for line in lines if line != ''])
@@ -306,23 +307,29 @@ def _wd_subclasses(cl):
 	files = os.listdir(path)
 	subclasses = os.listdir(path + 'subclasses/')
 
-	if cl + '.nt' not in subclasses:
+	cl_filename = '{}.nt'.format(cl)
+
+	if cl_filename not in subclasses:
 		filename = [f for f in files if 'latest-all' in f]
 
 		if len(filename) == 0:
 			raise NameError('No dump found, please run:\n\t>>> download_latest()')
 		else:
-			filename=filename[0]
+			filename = filename[0]
 
 		_wd_clear()
 
-		print('Parsing the dump ',filename)
-		print("grep '<[^>]*P279>.*<[^>]*"+cl+"> \.' "+path_os+filename+"  > "+path_os+'subclasses/'+cl+"_temp.nt")
+		print('Parsing the dump {}'.format(filename))
 
-		os.system("grep '<[^>]*P279>.*<[^>]*"+cl+"> \.' "+path_os+filename+"  > "+path_os+'subclasses/'+cl+"_temp.nt")
-		os.system("mv "+path_os+'subclasses/'+cl+"_temp.nt "+path_os+'subclasses/'+cl+".nt")
+		statement = "grep '<[^>]*P279>.*<[^>]*" + cl + "> \.' " + path_os + filename + "  > " + path_os + 'subclasses/' + cl + "_temp.nt"
+		print(statement)
+		os.system(statement)
 
-	lines = open(path+'subclasses/'+cl+".nt").read().split('\n')
+		statement = "mv " + path_os + 'subclasses/' + cl + "_temp.nt " + path_os + 'subclasses/' + cl + ".nt"
+		print(statement)
+		os.system(statement)
+
+	lines = open(path + 'subclasses/' + cl + ".nt").read().split('\n')
 	subclasses = set([line.split(' ')[0].split('/')[-1].split('>')[0].split('S')[0].split('-')[0] for line in lines if line != ''])
 
 	return subclasses
