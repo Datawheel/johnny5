@@ -1,17 +1,17 @@
-try:
-	xrange
-except NameError:
-	xrange = range
+import json, os, operator, copy, mwparserfromhell, datetime as dt, codecs, re, warnings
+from collections import defaultdict
+from multiprocessing import cpu_count
 
-import json,os,operator,copy,mwparserfromhell,datetime as dt,codecs,re,warnings
 import nltk.data,nltk
 from nltk.stem import WordNetLemmatizer
-nltk.download('wordnet',quiet=True)
-nltk.download('punkt',quiet=True)
-nltk.download('averaged_perceptron_tagger',quiet=True)
+nltk.download('wordnet', quiet=True)
+nltk.download('punkt', quiet=True)
+nltk.download('averaged_perceptron_tagger', quiet=True)
+
 from dateutil.relativedelta import relativedelta
-from pandas import DataFrame,read_csv,concat,merge
-from .functions import country,_dms2dd,_dt2str,_all_dates
+from pandas import DataFrame, read_csv, concat, merge
+from numpy import mean
+
 try:
     import cPickle as pickle
 except:
@@ -20,13 +20,13 @@ try:
 	import spotipy
 except:
 	warnings.warn('Warning: spotipy module not found')
-from multiprocessing import cpu_count
-from .query import wd_q,wp_q,_string,_isnum,_rget,get_soup
-from .parse_functions import drop_comments,find_nth,parse_date,get_links,correct_titles,parse_ints,parse_p
-from collections import defaultdict
-from numpy import mean
 
-class article(object):
+from .functions import country, _dms2dd, _dt2str, _all_dates
+from .query import wd_q, wp_q, _string, _isnum, _rget, get_soup
+from .parse_functions import drop_comments, find_nth, parse_date,get_links, correct_titles, parse_ints, parse_p
+
+
+class article:
 	"""
 	This is the main class for this module.
 	All other classes belong to this class.
@@ -1013,6 +1013,7 @@ class article(object):
 		else:
 			return self._isa_values[0]
 
+
 class place(article):
 	'''Places (includes methods to get coordinates).'''
 	def __init__(self,I,Itype=None):
@@ -1127,6 +1128,7 @@ class place(article):
 			return self._country[0]
 		else:
 			return self._country[1]
+
 
 class song(article):
 	'''Class for songs.'''
@@ -1255,18 +1257,17 @@ class song(article):
 	def performer(self):
 		return article(self.wd_prop('P175')[0]['id']).title()
 
-class biography(article):
-	'''
-	Class for biographies of real people.
-	'''
-	def __init__(self,I,Itype=None):
-		super(biography, self).__init__(I,Itype=None)
+
+class Biography(article):
+	""" Class for biographies of real people. """
+	def __init__(self, I, Itype=None):
+		super(biography, self).__init__(I, Itype=None)
 		self._is_bio = None
 		self._wpbio = None
 		self._birth_date = None
 		self._death_date = None
-		self._birth_place = None #j5.place()
-		self._death_place = None #j5.place()
+		self._birth_place = None  # j5.place()
+		self._death_place = None  # j5.place()
 		self._name = None
 		#if not self.is_bio():
 		#	print('Warning: Not a biography ('+str(self.curid())+')')
@@ -1620,6 +1621,7 @@ class biography(article):
 				prob_ratio = self._occ[0][1]/self._occ[1][1]
 				return self._occ[0][0],prob_ratio
 
+
 class band(article):
 	'''
 	Class for music bands.
@@ -1816,7 +1818,9 @@ class band(article):
 		else:
 			return ('NULL','NULL','NULL')
 
+
 # class CTY(object):
+
 
 class Occ(object):
 	'''
@@ -1984,6 +1988,7 @@ class Occ(object):
 			article._feats = feats
 		return article._feats
 
+
 def _id_type(I):
 	if _isnum(I):
 		return 'curid'
@@ -1993,6 +1998,7 @@ def _id_type(I):
 		return 'wdid'
 	else:
 		return 'title'
+
 
 def search(s):
 	'''
