@@ -49,58 +49,58 @@ def _string(val):
 
 
 def _join_list_of_jsons(r):
-    out = {}
-    keys = set(chain.from_iterable([list(rr.keys()) for rr in r]))
-    keys_continue = []
+	out = {}
+	keys = set(chain.from_iterable([list(rr.keys()) for rr in r]))
+	keys_continue = []
 
 	for key in keys:
-        elements = []
+		elements = []
 
-	    for rr in r:
-            try:
-                elements.append(rr[key])
-            except:
-                pass
+		for rr in r:
+			try:
+				elements.append(rr[key])
+			except:
+				pass
 
-	    t = [isinstance(element, dict) for element in elements]
+		t = [isinstance(element, dict) for element in elements]
 
-	    if not any(t):
-            elements = list(chain.from_iterable(elements)) if any([isinstance(element,list) for element in elements]) else elements
+		if not any(t):
+			elements = list(chain.from_iterable(elements)) if any([isinstance(element,list) for element in elements]) else elements
 
-	        try:
-                out[key] = elements[0] if len(set(elements)) == 1 else elements
-            except:
-                out[key] = elements
-        elif all(t):
-            keys_continue.append(key)
-            out[key] = elements
-        else:
-            raise NameError('Cannot merge jsons')
+			try:
+				out[key] = elements[0] if len(set(elements)) == 1 else elements
+			except:
+				out[key] = elements
+		elif all(t):
+			keys_continue.append(key)
+			out[key] = elements
+		else:
+			raise NameError('Cannot merge jsons')
 
 	#return defaultdict(lambda:'NA',out),keys_continue
-    return out, keys_continue
+	return out, keys_continue
 
 
 def _merge_jsons(r):
-    out = {}
-    out,k1s = _join_list_of_jsons(r)
+	out = {}
+	out,k1s = _join_list_of_jsons(r)
 
 	for k1 in k1s:
-        out[k1],k2s = _join_list_of_jsons(out[k1])
-        for k2 in k2s:
-            out[k1][k2],k3s = _join_list_of_jsons(out[k1][k2])
-            for k3 in k3s:
-                out[k1][k2][k3],k4s=_join_list_of_jsons(out[k1][k2][k3])
-                for k4 in k4s:
-                    out[k1][k2][k3][k4],k5s=_join_list_of_jsons(out[k1][k2][k3][k4])
-                    for k5 in k5s:
-                        out[k1][k2][k3][k4][k5],k6s=_join_list_of_jsons(out[k1][k2][k3][k4][k5])
-                        for k6 in k6s:
-                            out[k1][k2][k3][k4][k5][k6],k7s=_join_list_of_jsons(out[k1][k2][k3][k4][k5][k6])
-                            for k7 in k7s:
-                            	out[k1][k2][k3][k4][k5][k6][k7],k8s=_join_list_of_jsons(out[k1][k2][k3][k4][k5][k6][k7])
-                            	if len(k8s):
-                                	raise NameError('Depth exceeded')
+		out[k1],k2s = _join_list_of_jsons(out[k1])
+		for k2 in k2s:
+			out[k1][k2],k3s = _join_list_of_jsons(out[k1][k2])
+			for k3 in k3s:
+				out[k1][k2][k3],k4s=_join_list_of_jsons(out[k1][k2][k3])
+				for k4 in k4s:
+					out[k1][k2][k3][k4],k5s=_join_list_of_jsons(out[k1][k2][k3][k4])
+					for k5 in k5s:
+						out[k1][k2][k3][k4][k5],k6s=_join_list_of_jsons(out[k1][k2][k3][k4][k5])
+						for k6 in k6s:
+							out[k1][k2][k3][k4][k5][k6],k7s=_join_list_of_jsons(out[k1][k2][k3][k4][k5][k6])
+							for k7 in k7s:
+								out[k1][k2][k3][k4][k5][k6][k7],k8s=_join_list_of_jsons(out[k1][k2][k3][k4][k5][k6][k7])
+								if len(k8s):
+									raise NameError('Depth exceeded')
 
 	return out
 
