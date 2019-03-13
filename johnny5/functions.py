@@ -1,3 +1,4 @@
+import re
 import os, time, codecs, datetime as dt
 from pandas import DataFrame
 from itertools import chain
@@ -184,28 +185,23 @@ def wd_instances(cl, include_subclasses=False, return_subclasses=False):
 		queried = set([cl])
 		to_query = set([])
 
-	# print(queried)
-	# print(to_query)
-	# print(_dumps_path())
-
+	# TODO: Optimize
 	while len(to_query) != 0:
-		print(to_query)
+		print('LEFT TO QUERY: {}'.format(to_query))
 		c = next(iter(to_query))
 		query = _wd_subclasses(c)
 		to_query.discard(c)
 		queried.add(c)
 		to_query.update(query.difference(queried))
 
-	# print(queried)
-	# print(to_query)
-
-	instances = set([])
-
 	if include_subclasses:
 		print("Found a total of {} subclasses.".format(str(len(queried))))
 
-	for c in queried:
-		instances.update(_wd_instances(c))
+	# TODO: Optimize
+	# instances = set([])
+	# for c in queried:
+	# 	instances.update(_wd_instances(c))
+	instances = _wd_instances(queried)
 
 	if return_subclasses and include_subclasses:
 		return instances, queried
@@ -270,37 +266,73 @@ def _wd_clear():
 			os.system("rm {}subclasses/{}".format(path_os, cl))
 
 
-def _wd_instances(cl):
+def _wd_instances(cl_ids):
 	""" Gets all the instances of the given class, without worrying about subclasses. """
+	cl_ids = list(cl_ids)
+	pattern = r".*<[^>]*P31>.*<[^>]*(" + '|'.join(cl_ids) + r")> \."
+
 	path = _dumps_path()
 	path_os = _path(path)
 	files = os.listdir(path)
-	instances = os.listdir(path + 'instances/')
 
-	if cl + '.nt' not in instances:
-		filename = [f for f in files if 'latest-all' in f]
+	filename = [f for f in files if 'latest-all' in f]
 
-		if len(filename) == 0:
-			raise NameError('No dump found, please run:\n\t>>> download_latest()')
-		else:
-			filename = filename[0]
+	F = open("{}instances/people.nt".format(path), mode='w')
 
-		_wd_clear()
+	if len(filename) == 0:
+		raise NameError('No dump found, please run:\n\t>>> download_latest()')
+	else:
+		filename = filename[0]
 
-		print('Parsing the dump ',filename)
+	print('Parsing the dump {}'.format(filename))
 
-		statement = "grep '<[^>]*P31>.*<[^>]*"+cl+"> \.' "+path_os+filename+"  > "+path_os+'instances/'+cl+"_temp.nt"
-		print(statement)
-		os.system(statement)
+	matches = 0
 
-		statement = "mv "+path_os+'instances/'+cl+"_temp.nt "+path_os+'instances/'+cl+".nt"
-		print(statement)
-		os.system(statement)
+	with open('{}{}'.format(path_os, filename)) as f:
+		for line in f:
+			m = re.match(pattern, line)
+			if m:
+				F.write(line)
 
-	lines = open(path+'instances/'+cl+".nt").read().split('\n')
+	F.close()
+
+	lines = open("{}instances/people.nt".format(path)).read().split('\n')
 	instances = set([line.split(' ')[0].split('/')[-1].split('>')[0].split('S')[0].split('-')[0] for line in lines if line != ''])
 
 	return instances
+
+
+# def _wd_instances(cl):
+# 	""" Gets all the instances of the given class, without worrying about subclasses. """
+# 	path = _dumps_path()
+# 	path_os = _path(path)
+# 	files = os.listdir(path)
+# 	instances = os.listdir(path + 'instances/')
+
+# 	if cl + '.nt' not in instances:
+# 		filename = [f for f in files if 'latest-all' in f]
+
+# 		if len(filename) == 0:
+# 			raise NameError('No dump found, please run:\n\t>>> download_latest()')
+# 		else:
+# 			filename = filename[0]
+
+# 		_wd_clear()
+
+# 		print('Parsing the dump ',filename)
+
+# 		statement = "grep '<[^>]*P31>.*<[^>]*"+cl+"> \.' "+path_os+filename+"  > "+path_os+'instances/'+cl+"_temp.nt"
+# 		print(statement)
+# 		os.system(statement)
+
+# 		statement = "mv "+path_os+'instances/'+cl+"_temp.nt "+path_os+'instances/'+cl+".nt"
+# 		print(statement)
+# 		os.system(statement)
+
+# 	lines = open(path+'instances/'+cl+".nt").read().split('\n')
+# 	instances = set([line.split(' ')[0].split('/')[-1].split('>')[0].split('S')[0].split('-')[0] for line in lines if line != ''])
+
+# 	return instances
 
 
 def _wd_subclasses(cl):
@@ -324,11 +356,11 @@ def _wd_subclasses(cl):
 
 		print('Parsing the dump {}'.format(filename))
 
-		statement = "grep '<[^>]*P279>.*<[^>]*" + cl + "> \.' " + path_os + filename + "  > " + path_os + 'subclasses/' + cl + "_temp.nt"
+		statement = "grep '<[^>]*P279>.*<[^>]*{}> \.' {}{} > {}subclasses/{}_temp.nt".format(cl, path_os, filename, path_os, cl)
 		print(statement)
 		os.system(statement)
 
-		statement = "mv " + path_os + 'subclasses/' + cl + "_temp.nt " + path_os + 'subclasses/' + cl + ".nt"
+		statement = "mv {}subclasses/{}_temp.nt {}subclasses/{}.nt".format(path_os, cl, path_os, cl)
 		print(statement)
 		os.system(statement)
 
@@ -594,15 +626,15 @@ def download_latest():
 			os.remove(path + f)
 
 	if drop_instances:
-		# os.remove(path+filename)
+		os.remove(path + filename)
 		remove = os.listdir(path + 'instances/')
 
 		for f in remove:
 			print('Remove ', path + 'instances/' + f)
-			# os.remove(path+'instances/'+f)
+			os.remove(path + 'instances/' + f)
 
 		remove = os.listdir(path + 'subclasses/')
 
 		for f in remove:
 			print('Remove ', path + 'subclasses/' + f)
-			# os.remove(path+'subclasses/'+f)
+			os.remove(path + 'subclasses/' + f)
