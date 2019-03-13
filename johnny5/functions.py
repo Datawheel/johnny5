@@ -185,22 +185,15 @@ def wd_instances(cl, include_subclasses=False, return_subclasses=False):
 		queried = set([cl])
 		to_query = set([])
 
-	# TODO: Optimize
 	while len(to_query) != 0:
-		print('LEFT TO QUERY: {}'.format(to_query))
-		c = next(iter(to_query))
-		query = _wd_subclasses(c)
-		to_query.discard(c)
-		queried.add(c)
-		to_query.update(query.difference(queried))
+		query = _wd_subclasses(to_query)
+		queried.update(to_query)
+		to_query = query.difference(queried)
 
 	if include_subclasses:
 		print("Found a total of {} subclasses.".format(str(len(queried))))
 
-	# TODO: Optimize
-	# instances = set([])
-	# for c in queried:
-	# 	instances.update(_wd_instances(c))
+	print("Retrieving instances.")
 	instances = _wd_instances(queried)
 
 	if return_subclasses and include_subclasses:
@@ -286,8 +279,6 @@ def _wd_instances(cl_ids):
 
 	print('Parsing the dump {}'.format(filename))
 
-	matches = 0
-
 	with open('{}{}'.format(path_os, filename)) as f:
 		for line in f:
 			m = re.match(pattern, line)
@@ -302,70 +293,43 @@ def _wd_instances(cl_ids):
 	return instances
 
 
-# def _wd_instances(cl):
-# 	""" Gets all the instances of the given class, without worrying about subclasses. """
-# 	path = _dumps_path()
-# 	path_os = _path(path)
-# 	files = os.listdir(path)
-# 	instances = os.listdir(path + 'instances/')
-
-# 	if cl + '.nt' not in instances:
-# 		filename = [f for f in files if 'latest-all' in f]
-
-# 		if len(filename) == 0:
-# 			raise NameError('No dump found, please run:\n\t>>> download_latest()')
-# 		else:
-# 			filename = filename[0]
-
-# 		_wd_clear()
-
-# 		print('Parsing the dump ',filename)
-
-# 		statement = "grep '<[^>]*P31>.*<[^>]*"+cl+"> \.' "+path_os+filename+"  > "+path_os+'instances/'+cl+"_temp.nt"
-# 		print(statement)
-# 		os.system(statement)
-
-# 		statement = "mv "+path_os+'instances/'+cl+"_temp.nt "+path_os+'instances/'+cl+".nt"
-# 		print(statement)
-# 		os.system(statement)
-
-# 	lines = open(path+'instances/'+cl+".nt").read().split('\n')
-# 	instances = set([line.split(' ')[0].split('/')[-1].split('>')[0].split('S')[0].split('-')[0] for line in lines if line != ''])
-
-# 	return instances
-
-
-def _wd_subclasses(cl):
+def _wd_subclasses(cl_ids):
 	""" Gets all the subclasses of the given class. """
+	cl_ids = list(cl_ids)
+	pattern = r".*<[^>]*P279>.*<[^>]*(" + '|'.join(cl_ids) + r")> \."
+
 	path = _dumps_path()
 	path_os = _path(path)
 	files = os.listdir(path)
-	subclasses = os.listdir(path + 'subclasses/')
 
-	cl_filename = '{}.nt'.format(cl)
+	filename = [f for f in files if 'latest-all' in f]
 
-	if cl_filename not in subclasses:
-		filename = [f for f in files if 'latest-all' in f]
+	F = dict()
+	for id_ in cl_ids:
+		F[id_] = open("{}subclasses/{}.nt".format(path, id_), mode='w')
 
-		if len(filename) == 0:
-			raise NameError('No dump found, please run:\n\t>>> download_latest()')
-		else:
-			filename = filename[0]
+	if len(filename) == 0:
+		raise NameError('No dump found, please run:\n\t>>> download_latest()')
+	else:
+		filename = filename[0]
 
-		_wd_clear()
+	print('Parsing the dump {}'.format(filename))
 
-		print('Parsing the dump {}'.format(filename))
+	with open('{}{}'.format(path_os, filename)) as f:
+		for line in f:
+			m = re.match(pattern, line)
+			if m:
+				id_ = m.group(1)
+				F[id_].write(line)
 
-		statement = "grep '<[^>]*P279>.*<[^>]*{}> \.' {}{} > {}subclasses/{}_temp.nt".format(cl, path_os, filename, path_os, cl)
-		print(statement)
-		os.system(statement)
+	for id_ in cl_ids:
+		F[id_].close()
 
-		statement = "mv {}subclasses/{}_temp.nt {}subclasses/{}.nt".format(path_os, cl, path_os, cl)
-		print(statement)
-		os.system(statement)
+	subclasses = set()
 
-	lines = open(path + 'subclasses/' + cl + ".nt").read().split('\n')
-	subclasses = set([line.split(' ')[0].split('/')[-1].split('>')[0].split('S')[0].split('-')[0] for line in lines if line != ''])
+	for id_ in cl_ids:
+		lines = open(path + 'subclasses/' + id_ + ".nt").read().split('\n')
+		subclasses.update(set([line.split(' ')[0].split('/')[-1].split('>')[0].split('S')[0].split('-')[0] for line in lines if line != '']))
 
 	return subclasses
 
