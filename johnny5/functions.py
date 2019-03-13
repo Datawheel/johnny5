@@ -268,6 +268,8 @@ def _wd_instances(cl_ids):
 	path_os = _path(path)
 	files = os.listdir(path)
 
+	os.system('rm {}/instances/*'.format(path_os))
+
 	filename = [f for f in files if 'latest-all' in f]
 
 	F = open("{}instances/people.nt".format(path), mode='w')
@@ -301,6 +303,8 @@ def _wd_subclasses(cl_ids):
 	path = _dumps_path()
 	path_os = _path(path)
 	files = os.listdir(path)
+
+	os.system('rm {}/subclasses/*'.format(path_os))
 
 	filename = [f for f in files if 'latest-all' in f]
 
