@@ -571,7 +571,7 @@ class Article:
 		return len(self.langlinks())
 
 
-	def CumulativePageviews(self,windowDays = 180):
+	def CumulativePageviews(self, windowDays=180):
 		'''
 		Gets the accumulated pageviews for all languages until today, starting from the given time window in days.
 		It will only consider editions that were created windowDays before today.
@@ -593,6 +593,7 @@ class Article:
 		timeWindow = dt.timedelta(days=windowDays)
 		start_date = today-timeWindow
 		start_date_str = str(start_date.year)+'-'+('0'+str(start_date.month))[-2:]
+
 		for lang in self.langlinks().keys():
 			if lang !='en':
 				cdate = dt.datetime.strptime(self.creation_date(lang).split('T')[0], '%Y-%m-%d')
@@ -602,11 +603,13 @@ class Article:
 						PV.append(views)
 					except:
 						pass
+
 		if 'en' in self.langlinks().keys():
 			PVen = self.pageviews(start_date_str,lang='en')['views'].sum()
 		else:
 			PVen = 0
-		return PV,PVen
+
+		return PV, PVen
 
 	def previous_titles(self):
 		'''
@@ -1381,32 +1384,32 @@ class Biography(Article):
 		except:
 			return default
 
-	def HPI(self):
+	def hpi(self):
 		'''
 		Calculates the Human Popularity Index.
 		'''
-		PV,PVen = self.CumulativePageviews()
+		PV, PVen = self.CumulativePageviews()
 		PVNE = sum(PV)
 		age = self.age_of_meme()
 		L_ = self.effectiveL()
 		CV = self.coeffOfVariation()
 		L = self.L()
-		HPI = log(L)+log(L_)+log(age)/log(4)+log(PVNE)-log(CV)
+		hpi = log(L) + log(L_) + log(age) / log(4) + log(PVNE) - log(CV)
 		if age < 70:
-			HPI+=-(70-age)/7.
-		return HPI
+			hpi +=- (70 - age) / 7.
+		return hpi
 
 	def effectiveL(self):
 		PV,PVen = self.CumulativePageviews()
-		H = array(PV+[PVen])
+		H = array(PV + [PVen])
 		H = H/sum(H)
 		L_ = exp(entropy(H))
 		return L_
 
 	def coeffOfVariation(self):
-		PV,PVen = self.CumulativePageviews()
-		CV = array(PV+[PVen])
-		CV = std(CV)/mean(CV)
+		PV, PVen = self.CumulativePageviews()
+		CV = array(PV + [PVen])
+		CV = std(CV) / mean(CV)
 		return CV
 
 	def gender(self):
@@ -1420,7 +1423,7 @@ class Biography(Article):
 
 	def twitter_handle(self):
 		twitter = self.wd_prop('P2002')
-		if len(twitter)>0:
+		if len(twitter) > 0:
 			return twitter[0]['value']
 		else:
 			return None
