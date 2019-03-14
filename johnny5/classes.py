@@ -1829,7 +1829,7 @@ class Band(Article):
 			pops = [track['popularity'] for track in self._top_songs]
 			return mean(pops),max(pops),len(pops)
 		else:
-			return ('NULL','NULL','NULL')
+			return ('NULL', 'NULL', 'NULL')
 
 
 # class CTY(object):
@@ -1846,25 +1846,25 @@ class Occ:
 	>>> C.classify(b)
 	'''
 	def __init__(self):
-		path = os.path.split(__file__)[0]+'/data/'
-		print('Loading data from:\n'+path)
+		path = os.path.split(__file__)[0] + '/data/'
+		print('Loading data from:\n' + path)
 		f = open(path+'trained_classifier.pkl', 'rb')
-		self._classifier = pickle.load(f)
+		self._classifier = pickle.load(f, encoding='latin1')
 		f.close()
 
 		self.lmt = WordNetLemmatizer()
 		self.sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
 
-		self.occ_vocab = set(open(path+'occ_vocab.txt').read().split('\n'))
-		self.tpc_vocab = set(open(path+'tpc_vocab.txt').read().split('\n'))
+		self.occ_vocab = set(open(path + 'occ_vocab.txt').read().split('\n'))
+		self.tpc_vocab = set(open(path + 'tpc_vocab.txt').read().split('\n'))
 
-		self.wdmap = defaultdict(lambda:'NA',dict([tuple(line[:-1].split('\t')) for line in open(path+"wd_occs_controlled.tsv")]))
-		self.bmap  = defaultdict(lambda:'NA',dict([tuple(line[:-1].split('\t')) for line in open(path+"box_controlled.tsv")]))
+		self.wdmap = defaultdict(lambda:'NA', dict([tuple(line[:-1].split('\t')) for line in open(path + "wd_occs_controlled.tsv")]))
+		self.bmap  = defaultdict(lambda:'NA', dict([tuple(line[:-1].split('\t')) for line in open(path + "box_controlled.tsv")]))
 
 		self.train = dict([tuple(line[:-1].split('\t')) for line in open(path+"train.tsv")])
 		self.train_keys = set(self.train.keys())
 
-	def classify(self,article,return_all=False,override_train=False):
+	def classify(self, article, return_all=False, override_train=False):
 		'''
 		Classifier function
 
