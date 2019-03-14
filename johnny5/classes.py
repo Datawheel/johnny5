@@ -10,8 +10,9 @@ nltk.download('averaged_perceptron_tagger', quiet=True)
 
 from dateutil.relativedelta import relativedelta
 from pandas import DataFrame, read_csv, concat, merge
-from numpy import mean
+from numpy import mean, array, exp, log, std, mean, log
 
+from scipy.stats import entropy
 try:
     import cPickle as pickle
 except:
@@ -568,6 +569,44 @@ class article:
 			Number of Wikipedia language editions this article exists in.
 		'''
 		return len(self.langlinks())
+
+
+	def CumulativePageviews(self,windowDays = 180):
+		'''
+		Gets the accumulated pageviews for all languages until today, starting from the given time window in days.
+		It will only consider editions that were created windowDays before today.
+
+		Parameters
+		----------
+		windowDays : int (optional)
+			Default is 180 days. This parameter indicates the start date for the pageviews.
+
+		Returns
+		-------
+		PV : list
+			List of accumulated pageviews in non-english languages.
+		PVen : float
+			Accumulated pageviews in english.
+		'''
+		PV = []
+		today = dt.datetime.now()
+		timeWindow = dt.timedelta(days=windowDays)
+		start_date = today-timeWindow
+		start_date_str = str(start_date.year)+'-'+('0'+str(start_date.month))[-2:]
+		for lang in self.langlinks().keys():
+			if lang !='en':
+				cdate = dt.datetime.strptime(self.creation_date(lang).split('T')[0], '%Y-%m-%d')
+				if (today-cdate)>timeWindow:
+					try:
+						views = self.pageviews(start_date_str,lang=lang)['views'].sum()
+						PV.append(views)
+					except:
+						pass
+		if 'en' in self.langlinks().keys():
+			PVen = self.pageviews(start_date_str,lang='en')['views'].sum()
+		else:
+			PVen = 0
+		return PV,PVen
 
 	def previous_titles(self):
 		'''
@@ -1317,6 +1356,45 @@ class Biography(article):
 			sentence = sentence.replace(p,'')
 		sentence = re.sub(r' +',' ',sentence)
 		return sentence
+
+	def age_of_meme(self,default=110):
+		'''
+		Returns the age of the meme defined as the number of years from the person's birthyear.
+		If it is not available, it returns the default value of 110, which is the exponential of the average of the log of the age of the people in Pantheon 1, for 2019.
+		'''
+		today = dt.datetime.now()
+		try:
+			return today.year-int(self.birth_date()[0])
+		except:
+			return default
+
+	def HPI(self):
+		'''
+		Calculates the Human Popularity Index.
+		'''
+		PV,PVen = self.CumulativePageviews()
+		PVNE = sum(PV)
+		age = self.age_of_meme()
+		L_ = self.effectiveL()
+		CV = self.coeffOfVariation()
+		L = self.L()
+		HPI = log(L)+log(L_)+log(age)/log(4)+log(PVNE)-log(CV)
+		if age < 70:
+			HPI+=-(70-age)/7.
+		return HPI
+
+	def effectiveL(self):
+		PV,PVen = self.CumulativePageviews()
+		H = array(PV+[PVen])
+		H = H/sum(H)
+		L_ = exp(entropy(H))
+		return L_
+
+	def coeffOfVariation(self):
+		PV,PVen = self.CumulativePageviews()
+		CV = array(PV+[PVen])
+		CV = std(CV)/mean(CV)
+		return CV
 
 	def gender(self):
 		'''Gets the Gender of the biography'''
