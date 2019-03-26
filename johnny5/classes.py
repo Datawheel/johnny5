@@ -1064,8 +1064,8 @@ class Place(Article):
 		out += 'coords: ('+str(self.coords()[0])+','+str(self.coords()[1])+')'
 		return out
 
-	def coords(self,wiki='wp'):
-		'''
+	def coords(self, wiki='wp'):
+		"""
 		Get the coordinates either from Wikipedia or Wikidata.
 
 		Parameters
@@ -1073,7 +1073,7 @@ class Place(Article):
 		wiki : string
 			Wiki to use, either 'wd' or 'wp'.
 			Default is 'wp'
-		'''
+		"""
 		if self._coords is None:
 			if wiki == 'wd':
 				try:
@@ -1127,7 +1127,7 @@ class Place(Article):
 
 								break
 					else:
-						parameters = {'latd':'NA','latns':'','longd':'NA','longew':''}
+						parameters = {'latd': 'NA', 'latns': '', 'longd': 'NA', 'longew': ''}
 						for template in templates:
 							name = template.name.strip().lower()
 							if 'infobox settlement' in name:
@@ -1143,7 +1143,7 @@ class Place(Article):
 								if parameters['latew'] == 'w':
 									parameters['longd'] *= -1
 								break
-						lat,lon = (parameters['latd'],parameters['longd'])
+						lat, lon = (parameters['latd'], parameters['longd'])
 
 					self._coords = (lat,lon)
 
@@ -1380,9 +1380,9 @@ class Biography(Article):
 		if wiki == 'wp':
 			if self.title():
 				if lang == 'en':
-					return self.title().replace(' ', '_').lower()
+					return self.title().replace(' ', '_')
 				elif lang in list(self.langlinks().keys()):
-					return self.langlinks(lang).replace(' ', '_').lower()
+					return self.langlinks(lang).replace(' ', '_')
 				else:
 					return None
 			else:
@@ -1391,7 +1391,7 @@ class Biography(Article):
 			if self.no_wd:
 				return None
 			else:
-				return self.wdid().lower()
+				return self.wdid()
 		else:
 			return None
 
@@ -1548,7 +1548,7 @@ class Biography(Article):
 		if self._birth_date is None:
 			d = ['NA']
 			t = 'NA'
-			if len(self.infobox()) !=0:
+			if len(self.infobox()) != 0:
 				for box in list(self.infobox().values()):
 					if 'birth_date' in list(box.keys()):
 						t = box['birth_date']
