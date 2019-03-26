@@ -120,36 +120,34 @@ class Article:
 		return out
 
 	def _missing_wd(self):
-		'''
-		This function is used to signal that the article does not correspond to a Wikidata page.
-		'''
+		"""This function is used to signal that the article does not correspond
+		to a Wikidata page.
+		"""
 		self.no_wd = True
 		self.I['wdid'] = None
 		self._data['wd'] = None
 
 	def _missing_wp(self):
-		'''
-		This function is used to signal that the article does not correspond to a Wikipedia page.
-		'''
+		"""This function is used to signal that the article does not correspond
+		to a Wikipedia page.
+		"""
 		self.no_wp = True
 		self.I['title'] = None
 		self.I['curid'] = None
 		self._data['wp'] = None
 
 	def wd_label(self):
-		'''
-		Returns the 'label' of the Wikidata entity (the label referes to the title).
-		'''
+		"""Returns the 'label' of the Wikidata entity (the label referes to the
+		title).
+		"""
 		try:
 			return self._data['wd']['labels']['en']['value']
 		except:
 			return None
 
 	def data_wp(self):
-		'''
-		Returns the metadata about the Wikipedia page.
-		'''
-		if (self._data['wp'] is None)&(not self.no_wp):
+		"""Returns the metadata about the Wikipedia page."""
+		if self._data['wp'] is None and not self.no_wp:
 			if (self.I['curid'] is not None):
 				self._data['wp'] = list(wp_q({'prop':'pageprops','ppprop':'wikibase_item','pageids':self.I['curid']})['query']['pages'].values())[0]
 			elif (self.I['title'] is not None):
@@ -170,7 +168,7 @@ class Article:
 						self._missing_wp()
 				else:
 					self._missing_wp()
-				if (self._data['wp'] is None)&(self.I['title'] is not None):
+				if self._data['wp'] is None and self.I['title'] is not None:
 					self._data['wp'] = list(wp_q({'prop':'pageprops','ppprop':'wikibase_item','titles':self.I['title']})['query']['pages'].values())[0]
 			else:
 				raise NameError('No identifier found.')
@@ -180,11 +178,9 @@ class Article:
 		return self._data['wp']
 
 	def data_wd(self):
-		'''
-		Returns the metadata about the Wikidata page.
-		'''
-		if (self._data['wd'] is None)&(not self.no_wd):
-			if (self.I['wdid'] is None):
+		"""Returns the metadata about the Wikidata page."""
+		if self._data['wd'] is None and not self.no_wd:
+			if self.I['wdid'] is None:
 				d = self.data_wp()
 				d = self._data['wp']
 				if 'wikibase_item' in list(d['pageprops'].keys()):
@@ -196,12 +192,10 @@ class Article:
 		return self._data['wd']
 
 	def wdid(self):
-		'''
-		Returns the wdid of the article.
+		"""Returns the wdid of the article.
 		Will get it if it is not provided.
-
-		'''
-		if (self.I['wdid'] is None)&(not self.no_wd):
+		"""
+		if self.I['wdid'] is None and not self.no_wd:
 			d = self.data_wp()
 			if 'pageprops' in d:
 				d = self.data_wp()['pageprops']
@@ -214,22 +208,19 @@ class Article:
 		return self.I['wdid']
 
 	def curid(self):
-		'''
-		Returns the english curid of the article.
+		"""Returns the english curid of the article.
 		Will get it if it is not provided.
-		'''
-		if (self.I['curid'] is None)&(not self.no_wp):
+		"""
+		if self.I['curid'] is None and not self.no_wp:
 			if self.data_wp() is not None:
 				self.I['curid'] = self.data_wp()['pageid']
 		return self.I['curid']
 
 	def title(self):
-		'''
-		Returns the title of the article.
+		"""Returns the title of the article.
 		Will get it if it is not provided.
-
-		'''
-		if (self.I['title'] is None)&(not self.no_wp):
+		"""
+		if self.I['title'] is None and not self.no_wp:
 			if self.data_wp() is not None:
 				self.I['title'] = self.data_wp()['title']
 		return self.I['title']
@@ -253,7 +244,7 @@ class Article:
 			raise NameError('Wrong wiki')
 
 	def curid_nonen(self,nonen=True):
-		'''
+		"""
 		Gets the curid in a non-english language.
 		The curid is a string and has the form: 'lang.curid'
 
@@ -261,7 +252,7 @@ class Article:
 		----------
 		nonen : boolean (True)
 			If False, and if the page exists in english, it will return the english curid.
-		'''
+		"""
 		if self._curid_nonen is None:
 			for lang,title in list(self.langlinks().items()):
 				try:
@@ -342,8 +333,7 @@ class Article:
 			return self._tables
 
 	def infobox(self,lang='en',force=False):
-		"""
-		Returns the infobox of the article.
+		"""Returns the infobox of the article.
 
 		Parameters
 		----------
@@ -353,7 +343,7 @@ class Article:
 			If True it will 'force' the search for the infobox by getting the template that is the most similar to an Infobox.
 			Recommended usage is only for non english editions.
 		"""
-		if (self._infobox is None)&(lang == 'en')&(not self.no_wp):
+		if self._infobox is None and lang == 'en' and not self.no_wp:
 			if self.raw_box is None:
 				rbox = '#redirect'
 				while '#redirect' in rbox.lower():
@@ -423,7 +413,7 @@ class Article:
 				box_pos+=1
 				box[box_type] = box_
 
-		if (box == {}) & force:
+		if box == {} and force:
 			lengths.append(7) #Infobox should have at least 7 fields
 			length = max(lengths)
 			for template in templates:
@@ -471,8 +461,7 @@ class Article:
 			return self._extracts[lang]
 
 	def langlinks(self,lang=None):
-		"""
-		Returns the langlinks of the article.
+		"""Returns the langlinks of the article.
 
 		Parameters
 		----------
@@ -498,7 +487,7 @@ class Article:
 								self._langlinks_dat = []
 								for lan in sitelinks:
 									lan = lan.strip().lower()
-									if (lan[-4:]=='wiki')&(lan!='commonswiki'):
+									if lan[-4:] == 'wiki' and lan != 'commonswiki':
 										val = {'lang':lan[:-4],'*':sitelinks[lan]['title']}
 										self._langlinks_dat.append(val)
 							else:
@@ -514,7 +503,7 @@ class Article:
 								self._langlinks_dat = []
 						break
 			self._langlinks = {val['lang']:val['*'] for val in self._langlinks_dat}
-			if ('en' not in list(self._langlinks.keys()))&(self.title() is not None):
+			if 'en' not in list(self._langlinks.keys()) and self.title() is not None:
 				self._langlinks['en'] = self.title()
 		l = defaultdict(lambda:'NULL',self._langlinks)
 		return self._langlinks if lang is None else l[lang]
@@ -560,21 +549,20 @@ class Article:
 			return self._creation_date[lang]
 
 	def L(self):
-		'''
-		Returns the number of language editions of the article.
+		"""Returns the number of language editions of the article.
 
 		Returns
 		-------
 		L : int
 			Number of Wikipedia language editions this article exists in.
-		'''
+		"""
 		return len(self.langlinks())
 
 
 	def CumulativePageviews(self, windowDays=180):
-		'''
-		Gets the accumulated pageviews for all languages until today, starting from the given time window in days.
-		It will only consider editions that were created windowDays before today.
+		"""Gets the accumulated pageviews for all languages until today, starting
+		from the given time window in days. It will only consider editions that
+		were created windowDays before today.
 
 		Parameters
 		----------
@@ -587,7 +575,7 @@ class Article:
 			List of accumulated pageviews in non-english languages.
 		PVen : float
 			Accumulated pageviews in english.
-		'''
+		"""
 		PV = []
 		today = dt.datetime.now()
 		timeWindow = dt.timedelta(days=windowDays)
@@ -597,7 +585,7 @@ class Article:
 		for lang in self.langlinks().keys():
 			if lang !='en':
 				cdate = dt.datetime.strptime(self.creation_date(lang).split('T')[0], '%Y-%m-%d')
-				if (today-cdate)>timeWindow:
+				if (today-cdate) > timeWindow:
 					try:
 						views = self.pageviews(start_date_str,lang=lang)['views'].sum()
 						PV.append(views)
@@ -605,7 +593,7 @@ class Article:
 						pass
 
 		if 'en' in self.langlinks().keys():
-			PVen = self.pageviews(start_date_str,lang='en')['views'].sum()
+			PVen = self.pageviews(start_date_str, lang='en')['views'].sum()
 		else:
 			PVen = 0
 
@@ -692,8 +680,8 @@ class Article:
 			if image.strip() != '':
 				if '[[' in image:
 					image = image[image.find('[[')+2:].split(']]')[0].split('|')[0]
-				if ((image.lower()[:5]!='file:') & (image.lower()[:6]!='image:')):
-					imgs.append('Image:'+image)
+				if image.lower()[:5] != 'file:' and image.lower()[:6] != 'image:':
+					imgs.append('Image:' + image)
 				else:
 					imgs.append(image)
 		images = imgs
@@ -784,8 +772,8 @@ class Article:
 			Content for the page in the given language.
 			Content is in WikiMarkup
 		'''
-		if lang=='en':
-			if (self._content is None)&(not self.no_wp):
+		if lang == 'en':
+			if self._content is None and not self.no_wp:
 				if self.title() is not None:
 					r = wp_q({'titles':self.title(),'prop':'revisions','rvprop':'content'})
 					if ('interwiki' in list(r['query'].keys())):
@@ -1363,9 +1351,7 @@ class Biography(Article):
 		return self._name
 
 	def desc(self):
-		'''
-		One sentence description of the person.
-		'''
+		"""One sentence description of the person."""
 		phrase,sentence,verb = self._is_a(full=True)
 		ps = parse_p(sentence)
 		for p in ps:
@@ -1374,10 +1360,10 @@ class Biography(Article):
 		return sentence
 
 	def age_of_meme(self,default=110):
-		'''
+		"""
 		Returns the age of the meme defined as the number of years from the person's birthyear.
 		If it is not available, it returns the default value of 110, which is the exponential of the average of the log of the age of the people in Pantheon 1, for 2019.
-		'''
+		"""
 		today = dt.datetime.now()
 		try:
 			return today.year-int(self.birth_date()[0])
@@ -1385,37 +1371,36 @@ class Biography(Article):
 			return default
 
 	def hpi(self):
-		'''
-		Calculates the Human Popularity Index.
-		'''
+		"""Calculates the Human Popularity Index."""
 		PV, PVen = self.CumulativePageviews()
 		PVNE = sum(PV)
 		age = self.age_of_meme()
-		L_ = self.effectiveL()
-		CV = self.coeffOfVariation()
+		L_ = self.effectiveL(PV, PVen)
+		CV = self.coeffOfVariation(PV, PVen)
 		L = self.L()
+
 		hpi = log(L) + log(L_) + log(age) / log(4) + log(PVNE) - log(CV)
+
 		if age < 70:
 			hpi +=- (70 - age) / 7.
+
 		return hpi
 
-	def effectiveL(self):
-		PV,PVen = self.CumulativePageviews()
+	def effectiveL(self, PV, PVen):
 		H = array(PV + [PVen])
-		H = H/sum(H)
+		H = H / sum(H)
 		L_ = exp(entropy(H))
 		return L_
 
-	def coeffOfVariation(self):
-		PV, PVen = self.CumulativePageviews()
+	def coeffOfVariation(self, PV, PVen):
 		CV = array(PV + [PVen])
 		CV = std(CV) / mean(CV)
 		return CV
 
 	def gender(self):
-		'''Gets the Gender of the biography'''
+		"""Gets the Gender of the biography."""
 		genders = self.wd_prop('P21')
-		if len(genders)>0:
+		if len(genders) > 0:
 			gender_wdid = self.wd_prop('P21')[0]['id']
 			return Article(gender_wdid).data_wd()['labels']['en']['value']
 		else:
@@ -1429,16 +1414,15 @@ class Biography(Article):
 			return None
 
 	def is_bio(self):
-		'''
-		Classifier for biographies
+		"""Classifier for biographies.
 
 		Returns
 		-------
 		is_bio : boolean
 			True if page is a biography.
-		'''
+		"""
 		if (self._is_bio is None):
-			if (not self.no_wp):
+			if not self.no_wp:
 				if self._wpbio_template() is None:
 					self._is_bio = False
 				else:
@@ -1462,9 +1446,9 @@ class Biography(Article):
 		return False
 
 	def _wpbio_template(self):
-		'''
+		"""
 		Returns the template associated to the WP Biography when available.
-		'''
+		"""
 		if (self._wpbio is None)&(self.title() is not None):
 			self._is_bio = False
 			r = wp_q({'prop':"revisions",'rvprop':'content','rvsection':0,'titles':'Talk:'+self.title()})
@@ -1481,7 +1465,7 @@ class Biography(Article):
 		return self._wpbio
 
 	def alive(self,boolean=False):
-		'''
+		"""
 		Retrieves the information whether the biography is about a living or dead person.
 		It uses the WikiProject Biography template from the Talk page to get this information.
 
@@ -1489,10 +1473,10 @@ class Biography(Article):
 		-------
 		alive : str
 			Returns either 'yes' or 'no'.
-		'''
+		"""
 		t = self._wpbio_template()
 		alive = 'NULL'
-		if (t !='NA')&(t is not None):
+		if t !='NA' and t is not None:
 			for p in t.params:
 				if p.name.strip().replace(' ','').lower() == 'living':
 					living = drop_comments(p.value.lower().strip())
@@ -1507,9 +1491,9 @@ class Biography(Article):
 						break
 			if alive == 'NULL':
 				phrase,sentence,verb = self._is_a(full=True)
-				if (verb == 'is')|(verb == 'are'):
+				if verb == 'is' or verb == 'are':
 					alive = 'yes'
-				elif (verb == 'was')|(verb == 'were'):
+				elif verb == 'was' or verb == 'were':
 					alive = 'no'
 		if boolean:
 			mp = defaultdict(lambda: 'NULL',{'yes':True,'no':False})
@@ -1517,8 +1501,8 @@ class Biography(Article):
 		else:
 			return alive
 
-	def birth_date(self,raw=False):
-		'''
+	def birth_date(self, raw=False):
+		"""
 		Gets the birth date from the infobox.
 		If it is not available in the infobox (or it cannot parse it) it uses Wikidata.
 
@@ -1533,7 +1517,7 @@ class Biography(Article):
 			(yyyy,mm,dd)
 		t : string (if raw)
 			Raw text from the infobox.
-		'''
+		"""
 		if self._birth_date is None:
 			d = ['NA']
 			t = 'NA'
@@ -1572,7 +1556,7 @@ class Biography(Article):
 			return d
 
 	def death_date(self, raw=False):
-		'''
+		"""
 		Gets the death date from the infobox.
 		If it is not available in the infobox (or it cannot parse it) it uses Wikidata.
 
@@ -1587,9 +1571,9 @@ class Biography(Article):
 			(yyyy,mm,dd)
 		t : string (if raw)
 			Raw text from the infobox.
-		'''
+		"""
 		if self._death_date is None:
-			if self.alive() =='yes':
+			if self.alive() == 'yes':
 				return 'alive'
 			d = ['NA']
 			t = 'NA'
@@ -1674,7 +1658,7 @@ class Biography(Article):
 		return self._death_place
 
 	def occupation(self,C=None,return_all=False,override_train=False):
-		'''
+		"""
 		Uses the occupation classifier Occ to predict the occupation.
 		This function will run slow when C is not passed, since it will need to load the classifier in each call.
 		Instead use:
@@ -1698,7 +1682,7 @@ class Biography(Article):
 		prob_ratio : float
 			Ratio between the most likely occupation, and the second most likely occupation.
 			If the biography belongs to the training set, it will return prob_ratio=0.
-		'''
+		"""
 		if (self._occ is None)|override_train:
 			if C is None:
 				warnings.warn('This function will run slow because it needs to load the classifier in each call.')
@@ -1717,11 +1701,12 @@ class Biography(Article):
 
 
 class Band(Article):
-	'''
-	Class for music bands.
+	"""Class for music bands.
+
 	It links to Spotify as well.
-	IT SHOULD ALSO LINK TO GENIUS
-	'''
+	TODO: IT SHOULD ALSO LINK TO GENIUS.
+	"""
+
 	def __init__(self,I,Itype=None):
 		super(Band, self).__init__(I,Itype=None)
 		self._is_band = None
@@ -1735,7 +1720,7 @@ class Band(Article):
 		self._top_songs = None
 
 	def btypes(self):
-		'''Categories this band is an instance of.'''
+		"""Categories this band is an instance of."""
 		if self._btypes is None:
 			tps = []
 			for i in self.wd_prop('P31'):
@@ -1747,14 +1732,13 @@ class Band(Article):
 		return self._btypes
 
 	def genres(self):
-		'''
-		Genres according to Wikidata
+		"""Genres according to Wikidata.
 
 		Returns
 		-------
 		genres : list
 			List of genre names.
-		'''
+		"""
 		if self._genres is None:
 			genres = []
 			for g in self.wd_prop('P136'):
@@ -1766,14 +1750,13 @@ class Band(Article):
 		return self._genres
 
 	def inception(self):
-		'''
-		Band's creation year
+		"""Band's creation year.
 
 		Returns
 		-------
 		year : int
 			Formation year
-		'''
+		"""
 		if self._inception is None:
 			years = []
 			for n in self.wd_prop('P571'):
@@ -1799,9 +1782,8 @@ class Band(Article):
 		return self._inception
 
 	def formation_place(self):
-		'''
-		Gets the formation place for the band.
-		Uses Wikidata and Wikipedia
+		"""Gets the formation place for the band.
+		Uses Wikidata and Wikipedia.
 
 		Returns
 		-------
@@ -1812,7 +1794,7 @@ class Band(Article):
 			3-digit code of the country where the band was formed
 		lat,lon : (float,float)
 			Coordinates of the formation place.
-		'''
+		"""
 		if self._formation_place is None:
 			formation = []
 			coords = []
@@ -1871,14 +1853,13 @@ class Band(Article):
 		return self._formation_place
 
 	def spotify_id(self):
-		'''
-		Uses Wikidata to get the spotify_id of the band.
+		"""Uses Wikidata to get the spotify_id of the band.
 
 		Returns
 		-------
 		spotify_id : str
 			Spotify ID.
-		'''
+		"""
 		if self._spotify_id is None:
 			try:
 				i = self.wd_prop('P1902')[0]['value']
@@ -1888,13 +1869,12 @@ class Band(Article):
 		return self._spotify_id
 
 	def spotify_pop(self):
-		'''
-		Average popularity of the top 10 songs of the band
+		"""Average popularity of the top 10 songs of the band.
 
 		Returns
 		-------
 		mean(pop),max(pop),len(pop)
-		'''
+		"""
 		if self._top_songs is None:
 			if (self.spotify_id() != 'NULL')&(self.spotify_id()!='NA'):
 				lz_uri = 'spotify:artist:'+self.spotify_id()
@@ -1917,7 +1897,7 @@ class Band(Article):
 
 
 class Occ:
-	'''
+	"""
 	Occupation classifier based on Wikipedia and Wikidata information.
 
 	Examples
@@ -1925,7 +1905,8 @@ class Occ:
 	>>> C = johnny5.Occ()
 	>>> b = johnny5.biography('Q937')
 	>>> C.classify(b)
-	'''
+	"""
+
 	def __init__(self):
 		path = os.path.split(__file__)[0] + '/data/'
 		print('Loading data from:\n' + path)
@@ -1946,8 +1927,7 @@ class Occ:
 		self.train_keys = set(self.train.keys())
 
 	def classify(self, article, return_all=False, override_train=False):
-		'''
-		Classifier function
+		"""Classifier function.
 
 		Parameters
 		----------
@@ -1965,7 +1945,7 @@ class Occ:
 		prob_ratio : float
 			Ratio between the most likely occupation, and the second most likely occupation.
 			If the biography belongs to the training set, it will return prob_ratio=0.
-		'''
+		"""
 		if (str(article.curid()) in self.train_keys)&(not override_train):
 			return (self.train[str(article.curid())],0)
 		else:
@@ -1989,18 +1969,19 @@ class Occ:
 		return text_
 
 	def _wd_occs(self,article):
-		'''
-		Returns the occupations as reported in Wikidata using the vocabulary provided in occ_vocab.txt
-		'''
+		"""Returns the occupations as reported in Wikidata using the vocabulary
+		provided in occ_vocab.txt.
+		"""
 		wd_occs = set([self.wdmap[o['id']] for o in article.wd_prop('P106')])
 		if 'NA' in wd_occs:
 			wd_occs.remove('NA')
 		return wd_occs
 
 	def _isa(self,article):
-		'''
-		Get the first and second occupation reported in the first sentence in Wikipedia, using the controlled vocabulary provided in box_controlled.tsv
-		'''
+		"""Get the first and second occupation reported in the first sentence
+		in Wikipedia, using the controlled vocabulary provided in
+		box_controlled.tsv.
+		"""
 		ex = article.extract()
 		sentences = self.sent_detector.tokenize(ex)
 		first_occ = ''
@@ -2025,9 +2006,9 @@ class Occ:
 		return 'NA','NA'
 
 	def _box_type(self,article):
-		'''
-		Gets the type of the first infobox of the provided Wikipedia page using the controlled vocabulary provided in box_controlled.tsv
-		'''
+		"""Gets the type of the first infobox of the provided Wikipedia page
+		using the controlled vocabulary provided in box_controlled.tsv.
+		"""
 		if article.infobox() is None:
 			return 'NA'
 		types = [self.bmap[val.replace('_',' ').strip().replace(' ','_')] for val in list(article.infobox().keys())]
@@ -2041,9 +2022,9 @@ class Occ:
 			return 'NA'
 
 	def _topics(self,article):
-		'''
-		Gets the topic words from the Wikipedia extract of the provided article, using the vocabulary provided in tpc_controlled.txt
-		'''
+		"""Gets the topic words from the Wikipedia extract of the provided
+		article, using the vocabulary provided in tpc_controlled.txt.
+		"""
 		words = set([])
 		ex = article.extract()
 		ex = self._normalize(ex)
@@ -2054,8 +2035,7 @@ class Occ:
 		return words
 
 	def feats(self,article):
-		'''
-		Gets the features of the article that feed into the classifier.
+		"""Gets the features of the article that feed into the classifier.
 
 		Parameters
 		----------
@@ -2066,7 +2046,7 @@ class Occ:
 		-------
 		features : collections.defaultdict
 			Dictionary of features.
-		'''
+		"""
 		if article._feats is None:
 			feats = defaultdict(lambda:False)
 			feats['btype'] = self._box_type(article)
@@ -2088,15 +2068,14 @@ def _id_type(I):
 		return 'curid'
 	elif I.isdigit():
 		return 'curid'
-	elif (I[0].lower() == 'q')&(I[1:].isdigit()):
+	elif I[0].lower() == 'q' and I[1:].isdigit():
 		return 'wdid'
 	else:
 		return 'title'
 
 
 def search(s):
-	'''
-	Searches Wikipedia and returns the first hit.
+	"""Searches Wikipedia and returns the first hit.
 
 	Parameters
 	----------
@@ -2107,10 +2086,10 @@ def search(s):
 	-------
 	a : j5.article
 		First hit of the search
-	'''
+	"""
 	search = 'https://en.wikipedia.org/w/api.php?action=query&format=json&list=search&srsearch='+s+'&utf8='
 	r = _rget(search).json()
-	if len(r['query']['search']) !=0:
+	if len(r['query']['search']) != 0:
 		p = r['query']['search'][0]
 		return article(p['pageid'])
 	else:
