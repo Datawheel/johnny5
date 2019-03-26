@@ -48,18 +48,18 @@ class Article:
 			I = 'NA' if I.strip() =='' else I
 		if Itype not in ['title','curid','wdid']:
 			raise NameError("Unrecognized Itype, please choose between title, curid, or wdid")
-		self.I = {'title':None,'curid':None,'wdid':None}
-		if (Itype == 'title')|(Itype == 'wdid'):
+		self.I = {'title': None, 'curid': None, 'wdid': None}
+		if Itype == 'title' or Itype == 'wdid':
 			self.I[Itype] = I.strip()
 		else:
 			self.I[Itype] = I
 
-		self._data = {'wp':None,'wd':None}
+		self._data = {'wp': None, 'wd': None}
 		self._curid_nonen = None
 
 		self._slow_connection = slow_connection
 
-		self._extracts = {'en':None}
+		self._extracts = {'en': None}
 
 		self._langlinks_dat = None
 		self._langlinks = None
@@ -90,7 +90,7 @@ class Article:
 
 		self._get_previous = True
 
-		self._views = {'en':DataFrame([],columns=['year','month','day','views'])}
+		self._views = {'en': DataFrame([], columns=['year', 'month', 'day', 'views'])}
 
 		if not self._slow_connection:
 			self.find_article()
@@ -225,25 +225,31 @@ class Article:
 				self.I['title'] = self.data_wp()['title']
 		return self.I['title']
 
-	def url(self,wiki='wp',lang='en'):
+	def url(self, wiki='wp', lang='en'):
 		if wiki == 'wp':
 			if self.title() is None:
-				print("No Wikipedia page corresponding to this article")
+				raise NameError("No Wikipedia page corresponding to this article")
 			elif lang == 'en':
-				print('https://en.wikipedia.org/wiki/'+self.title().replace(' ','_'))
+				url = 'https://en.wikipedia.org/wiki/' + self.title().replace(' ', '_')
+				print(url)
+				return url
 			else:
 				if lang in list(self.langlinks().keys()):
-					print('https://'+lang+'.wikipedia.org/wiki/'+self.langlinks(lang).replace(' ','_'))
+					url = 'https://'+lang+'.wikipedia.org/wiki/' + self.langlinks(lang).replace(' ', '_')
+					print(url)
+					return url
 				else:
-					print('No article in this edition')
-		elif wiki =='wd':
+					raise NameError('No article in this edition')
+		elif wiki == 'wd':
 			if self.no_wd:
-				print("No Wikidata page corresponding to this article")
-			print('https://www.wikidata.org/wiki/'+self.wdid())
+				raise NameError("No Wikidata page corresponding to this article")
+			url = 'https://www.wikidata.org/wiki/'+self.wdid()
+			print(url)
+			return url
 		else:
 			raise NameError('Wrong wiki')
 
-	def curid_nonen(self,nonen=True):
+	def curid_nonen(self, nonen=True):
 		"""
 		Gets the curid in a non-english language.
 		The curid is a string and has the form: 'lang.curid'
@@ -301,7 +307,7 @@ class Article:
 		soup = get_soup(self.title())
 		return soup
 
-	def tables(self,i=None):
+	def tables(self, i=None):
 		'''
 		Gets tables in the page.
 
@@ -558,7 +564,6 @@ class Article:
 		"""
 		return len(self.langlinks())
 
-
 	def CumulativePageviews(self, windowDays=180):
 		"""Gets the accumulated pageviews for all languages until today, starting
 		from the given time window in days. It will only consider editions that
@@ -756,7 +761,7 @@ class Article:
 		with open(file_name, 'w') as outfile:
 			json.dump(out, outfile)
 
-	def content(self,lang='en'):
+	def content(self, lang='en'):
 		'''
 		Returns the content of the Wikipedia page in the selected language.
 		The output is in Wikipedia markup.
@@ -788,7 +793,7 @@ class Article:
 			raise NameError('Functionality not supported yet.')
 		return self._content
 
-	def section(self,section_title):
+	def section(self, section_title):
 		'''
 		Returns the content inside the given section of the English Wikipedia page.
 
@@ -1299,6 +1304,7 @@ class Song(Article):
 
 class Biography(Article):
 	""" Class for biographies of real people. """
+
 	def __init__(self, I, Itype=None):
 		super(Biography, self).__init__(I, Itype=None)
 		self._is_bio = None
@@ -1359,7 +1365,7 @@ class Biography(Article):
 		sentence = re.sub(r' +',' ',sentence)
 		return sentence
 
-	def age_of_meme(self,default=110):
+	def age_of_meme(self, default=110):
 		"""
 		Returns the age of the meme defined as the number of years from the person's birthyear.
 		If it is not available, it returns the default value of 110, which is the exponential of the average of the log of the age of the people in Pantheon 1, for 2019.
@@ -1370,14 +1376,35 @@ class Biography(Article):
 		except:
 			return default
 
-	def hpi(self):
+	def slug(self, wiki='wp', lang='en'):
+		if wiki == 'wp':
+			if self.title():
+				if lang == 'en':
+					return self.title().replace(' ', '_').lower()
+				elif lang in list(self.langlinks().keys()):
+					return self.langlinks(lang).replace(' ', '_').lower()
+				else:
+					return None
+			else:
+				return None
+		elif wiki == 'wd':
+			if self.no_wd:
+				return None
+			else:
+				return self.wdid().lower()
+		else:
+			return None
+
+	def hpi(self, L=None):
 		"""Calculates the Human Popularity Index."""
 		PV, PVen = self.CumulativePageviews()
 		PVNE = sum(PV)
 		age = self.age_of_meme()
 		L_ = self.effectiveL(PV, PVen)
 		CV = self.coeffOfVariation(PV, PVen)
-		L = self.L()
+
+		if not L:
+			L = self.L()
 
 		hpi = log(L) + log(L_) + log(age) / log(4) + log(PVNE) - log(CV)
 
@@ -1657,7 +1684,7 @@ class Biography(Article):
 						break
 		return self._death_place
 
-	def occupation(self,C=None,return_all=False,override_train=False):
+	def occupation(self, C=None, return_all=False, override_train=False):
 		"""
 		Uses the occupation classifier Occ to predict the occupation.
 		This function will run slow when C is not passed, since it will need to load the classifier in each call.
@@ -1683,13 +1710,14 @@ class Biography(Article):
 			Ratio between the most likely occupation, and the second most likely occupation.
 			If the biography belongs to the training set, it will return prob_ratio=0.
 		"""
-		if (self._occ is None)|override_train:
+		if self._occ is None or override_train:
 			if C is None:
 				warnings.warn('This function will run slow because it needs to load the classifier in each call.')
 			C = Occ() if C is None else C
 			article = self #copy.deepcopy(self)
 			self._feats = C.feats(article)
-			self._occ = C.classify(article,return_all=True,override_train=override_train)
+			self._occ = C.classify(article, return_all=True, override_train=override_train)
+
 		if return_all:
 			return self._occ
 		else:
@@ -1697,7 +1725,7 @@ class Biography(Article):
 				return self._occ
 			else:
 				prob_ratio = self._occ[0][1]/self._occ[1][1]
-				return self._occ[0][0],prob_ratio
+				return self._occ[0][0], prob_ratio
 
 
 class Band(Article):
@@ -1893,9 +1921,6 @@ class Band(Article):
 			return ('NULL', 'NULL', 'NULL')
 
 
-# class CTY(object):
-
-
 class Occ:
 	"""
 	Occupation classifier based on Wikipedia and Wikidata information.
@@ -1907,12 +1932,16 @@ class Occ:
 	>>> C.classify(b)
 	"""
 
-	def __init__(self):
+	def __init__(self, classifier=None):
 		path = os.path.split(__file__)[0] + '/data/'
-		print('Loading data from:\n' + path)
-		f = open(path+'trained_classifier.pkl', 'rb')
-		self._classifier = pickle.load(f, encoding='latin1')
-		f.close()
+
+		if not classifier:
+			print('Loading data from:\n' + path)
+			f = open(path+'trained_classifier.pkl', 'rb')
+			self._classifier = pickle.load(f, encoding='latin1')
+			f.close()
+		else:
+			self._classifier = classifier
 
 		self.lmt = WordNetLemmatizer()
 		self.sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
@@ -1923,7 +1952,7 @@ class Occ:
 		self.wdmap = defaultdict(lambda:'NA', dict([tuple(line[:-1].split('\t')) for line in open(path + "wd_occs_controlled.tsv")]))
 		self.bmap  = defaultdict(lambda:'NA', dict([tuple(line[:-1].split('\t')) for line in open(path + "box_controlled.tsv")]))
 
-		self.train = dict([tuple(line[:-1].split('\t')) for line in open(path+"train.tsv")])
+		self.train = dict([tuple(line[:-1].split('\t')) for line in open(path + "train.tsv")])
 		self.train_keys = set(self.train.keys())
 
 	def classify(self, article, return_all=False, override_train=False):
@@ -1946,17 +1975,17 @@ class Occ:
 			Ratio between the most likely occupation, and the second most likely occupation.
 			If the biography belongs to the training set, it will return prob_ratio=0.
 		"""
-		if (str(article.curid()) in self.train_keys)&(not override_train):
-			return (self.train[str(article.curid())],0)
+		if str(article.curid()) in self.train_keys and not override_train:
+			return (self.train[str(article.curid())], 0)
 		else:
 			probs = self._classifier.prob_classify(self.feats(article))
-			probs = sorted([(c,probs.prob(c)) for c in probs.samples()],key=operator.itemgetter(1),reverse=True)
+			probs = sorted([(c,probs.prob(c)) for c in probs.samples()], key=operator.itemgetter(1),reverse=True)
 			prob_ratio = probs[0][1]/probs[1][1]
 			article._occ = probs
 			if return_all:
 				return probs
 			else:
-				return probs[0][0],prob_ratio
+				return probs[0][0], prob_ratio
 
 	def _normalize(self,text):
 		text_ = text.lower()
