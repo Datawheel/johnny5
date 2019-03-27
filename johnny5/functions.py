@@ -7,7 +7,7 @@ from urllib.request import *
 from bs4 import BeautifulSoup
 
 from .parse_functions import drop_comments
-from .query import wd_q,wp_q,_rget
+from .query import wd_q, wp_q, _rget
 
 
 wiki_API = 'https://en.wikipedia.org/w/api.php?action=query&format=json'
@@ -35,7 +35,7 @@ def get_multiple_image(curid):
 	NEEDS TO BE UPDATED
 	"""
 	api_url = 'https://en.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=content&format=json&pageids='+str(curid)+'&rvsection=0'
-	result = _rget(api_url).json()[u'query'][u'pages']
+	result = _rget(api_url)[u'query'][u'pages']
 	r = result[unicode(curid)][u'revisions'][0][u'*']
 	wikicode = mwparserfromhell.parse(r)
 	templates = wikicode.filter_templates()
@@ -86,13 +86,13 @@ def country(coords, path='', save=True, GAPI_KEY=None):
 	else:
 		url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng=' + latlng
 
-	r = _rget(url).json()
+	r = _rget(url) #.json()
 
 	zero_results = False
 
 	if r['status'] == 'OVER_QUERY_LIMIT':
 		time.sleep(1)
-		r = _rget(url).json()
+		r = _rget(url) #.json()
 	if r['status'] != 'OK':
 		if r['status'] == 'OVER_QUERY_LIMIT':
 			raise NameError('Query limit reached')

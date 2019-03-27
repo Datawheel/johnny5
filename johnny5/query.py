@@ -1,3 +1,5 @@
+import subprocess
+import json
 import requests
 
 from bs4 import BeautifulSoup
@@ -28,7 +30,10 @@ def _isiter(obj):
 
 def _rget(url):
 	""" Function used to track the requests that are performed. """
-	return requests.get(url)
+	# return requests.get(url)
+	p = subprocess.Popen(['curl', url], stdout=subprocess.PIPE)
+	r = p.communicate()[0].decode("utf-8")
+	return json.loads(r)
 
 
 def _isnum(n):
@@ -168,7 +173,7 @@ def wd_q(d, show=False):
 		if show:
 			print(url.replace(' ','_'))
 
-		rr = _rget(url).json()
+		rr = _rget(url) #.json()
 		r.append(rr)
 
 	return _merge_jsons(r)
@@ -235,7 +240,7 @@ def wp_q(d,lang='en',continue_override=False,show=False):
 		if show:
 			print(url.replace(' ','_'))
 
-		rr = _rget(url).json()
+		rr = _rget(url) #.json()
 
 		while True:
 			r.append(rr)
@@ -251,7 +256,7 @@ def wp_q(d,lang='en',continue_override=False,show=False):
 				if show:
 					print(url+'&'+urlencode(continue_dict)).replace(' ','_')
 
-				rr = _rget(url+'&'+urlencode(continue_dict)).json()
+				rr = _rget(url+'&'+urlencode(continue_dict)) #.json()
 			else:
 				break
 

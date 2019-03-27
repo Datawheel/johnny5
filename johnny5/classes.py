@@ -956,14 +956,14 @@ class Article:
 
 	def _pv_rest(self,start_date,end_date,get_previous=False,lang='en'):
 		url = 'https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/'+lang+'.wikipedia/all-access/user/'+self.langlinks(lang=lang)+'/daily/'+_dt2str(start_date)+'/'+_dt2str(end_date)
-		r = _rget(url).json()
+		r = _rget(url) #.json()
 		days = _all_dates(start_date,end_date)
 		new_views = DataFrame([(int(val['timestamp'][:4]),int(val['timestamp'][4:6]),int(val['timestamp'][6:8]),val['views']) for val in r['items']],columns=['year','month','day','views'])
 		new_views = merge(days,new_views,how='left').fillna(0)
 		if get_previous:
 			for title in self.previous_titles():
 				url = 'https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/'+lang+'.wikipedia/all-access/user/'+title+'/daily/'+_dt2str(start_date)+'/'+_dt2str(end_date)
-				r = _rget(url).json()
+				r = _rget(url) #.json()
 				new_views_t = DataFrame([(int(val['timestamp'][:4]),int(val['timestamp'][4:6]),int(val['timestamp'][6:8]),val['views']) for val in r['items']],columns=['year','month','day','views_t'])
 				new_views = merge(new_views,new_views_t,how='outer').fillna(0)
 				new_views['views'] = new_views['views']+new_views['views_t']
@@ -2117,7 +2117,7 @@ def search(s):
 		First hit of the search
 	"""
 	search = 'https://en.wikipedia.org/w/api.php?action=query&format=json&list=search&srsearch='+s+'&utf8='
-	r = _rget(search).json()
+	r = _rget(search) #.json()
 	if len(r['query']['search']) != 0:
 		p = r['query']['search'][0]
 		return article(p['pageid'])
