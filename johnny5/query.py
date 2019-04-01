@@ -233,7 +233,7 @@ def wp_q(d,lang='en',continue_override=False,show=False):
 		p = {use:str.join('|', [_string(vv) for vv in v]) if _isiter(v) else v}
 
 		for key,value in p.items():
-			p[key]=value.encode('utf-8')
+			p[key] = value.encode('utf-8')
 
 		url = base_url + urlencode(props) + '&' + urlencode(p)
 
@@ -245,9 +245,9 @@ def wp_q(d,lang='en',continue_override=False,show=False):
 		while True:
 			r.append(rr)
 
-			if ('continue' in rr.keys())&(not continue_override):
-				continue_keys = [c for c in rr['continue'].keys() if c !='continue']
-				if len(continue_keys) >1:
+			if 'continue' in rr.keys() and not continue_override:
+				continue_keys = [c for c in rr['continue'].keys() if c != 'continue']
+				if len(continue_keys) > 1:
 					print('Warning: more than one continue parameter found.')
 					print(url.replace(' ','_'))
 
