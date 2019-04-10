@@ -1448,27 +1448,30 @@ class Biography(Article):
 		is_bio : boolean
 			True if page is a biography.
 		"""
-		if (self._is_bio is None):
+		if self._is_bio is None:
 			if not self.no_wp:
 				if self._wpbio_template() is None:
 					self._is_bio = False
 				else:
-					if self._is_group():
-						self._is_bio = False
-					else:
-						self._is_bio = True
+					# if self._is_group():
+					# 	self._is_bio = False
+					# else:
+					# 	self._is_bio = True
+					self._is_bio = True
 			else:
 				self._is_bio = False
+
 		return self._is_bio
 
 	def _is_group(self):
-		phrase,sentence,verb = self._is_a(full=True)
-		if (verb=='are')|(verb=='were'):
+		phrase, sentence, verb = self._is_a(full=True)
+		if verb == 'are' or verb == 'were':
 			return True
 		words = set(nltk.word_tokenize(phrase.lower()))
-		buzz_words = ['band','duo','group','team']
+		buzz_words = ['band', 'duo', 'group', 'team']
 		for w in buzz_words:
-			if (w in words):
+			if w in words:
+				print('Found "{}" in words'.format(w))
 				return True
 		return False
 
@@ -1476,19 +1479,20 @@ class Biography(Article):
 		"""
 		Returns the template associated to the WP Biography when available.
 		"""
-		if (self._wpbio is None)&(self.title() is not None):
+		if self._wpbio is None and self.title() is not None:
 			self._is_bio = False
 			r = wp_q({'prop':"revisions",'rvprop':'content','rvsection':0,'titles':'Talk:'+self.title()})
 			try:
 				wikicode = mwparserfromhell.parse(list(r['query']['pages'].values())[0]['revisions'][0]['*'])
 				templates = wikicode.filter_templates()
 				for t in templates:
-					if ('biography' in t.name.lower().replace(' ',''))|('bio' in t.name.lower().replace(' ','')):
+					if 'biography' in t.name.lower().replace(' ','') or 'bio' in t.name.lower().replace(' ',''):
 						self._wpbio = t
 						self._is_bio = True
 						break
 			except:
 				pass
+
 		return self._wpbio
 
 	def alive(self,boolean=False):
