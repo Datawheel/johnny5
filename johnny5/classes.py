@@ -10,7 +10,8 @@ nltk.download('averaged_perceptron_tagger', quiet=True)
 
 from dateutil.relativedelta import relativedelta
 from pandas import DataFrame, read_csv, concat, merge
-from numpy import mean, array, exp, log, std, mean, log
+from numpy import mean, array, exp, log, std, minimum
+import numpy as np
 
 from scipy.stats import entropy
 try:
@@ -1372,7 +1373,7 @@ class Biography(Article):
 		"""
 		today = dt.datetime.now()
 		try:
-			return today.year-int(self.birth_date()[0])
+			return today.year - int(self.birth_date()[0])
 		except:
 			return default
 
@@ -1395,7 +1396,7 @@ class Biography(Article):
 		else:
 			return None
 
-	def hpi(self, L=None):
+	def hpi(self, L=None, return_metadata=False):
 		"""Calculates the Human Popularity Index."""
 		PV, PVen = self.CumulativePageviews()
 		PVNE = sum(PV)
@@ -1406,12 +1407,18 @@ class Biography(Article):
 		if not L:
 			L = self.L()
 
-		hpi = log(L) + log(L_) + log(age) / log(4) + log(PVNE) - log(CV)
+		hpi_actual = log(L) + log(L_) + log(age) / log(4) + log(PVNE) - log(CV)
+		hpi_cutoff = log(L) + log(L_) + log(200) / log(4) + log(PVNE) - log(CV)
+
+		hpi = minimum(hpi_cutoff, hpi_actual)
 
 		if age < 70:
 			hpi +=- (70 - age) / 7.
 
-		return hpi
+		if return_metadata:
+			return L, L_, age, PVNE, CV, hpi
+		else:
+			return hpi
 
 	def effectiveL(self, PV, PVen):
 		H = array(PV + [PVen])
@@ -1471,7 +1478,6 @@ class Biography(Article):
 		buzz_words = ['band', 'duo', 'group', 'team']
 		for w in buzz_words:
 			if w in words:
-				print('Found "{}" in words'.format(w))
 				return True
 		return False
 
