@@ -753,7 +753,7 @@ class Article:
 				self._wd_claims[prop] = [defaultdict(lambda:'NA')]
 		return self._wd_claims[prop]
 
-	def dump(self,path='',file_name=None):
+	def dump(self, path='', file_name=None):
 		'''
 		Dumps the object to a file.
 		'''
@@ -1407,13 +1407,13 @@ class Biography(Article):
 		if not L:
 			L = self.L()
 
-		hpi_actual = log(L) + log(L_) + log(age) / log(4) + log(PVNE) - log(CV)
-		hpi_cutoff = log(L) + log(L_) + log(200) / log(4) + log(PVNE) - log(CV)
+		hpi_actual = log(L ** 2) + log(L_ ** 2) + log(age) / log(4) + log(PVNE) - log(CV)
+		hpi_cutoff = log(L ** 2) + log(L_ ** 2) + log(500) / log(4) + log(PVNE) - log(CV)
 
 		hpi = minimum(hpi_cutoff, hpi_actual)
 
-		if age < 70:
-			hpi +=- (70 - age) / 7.
+		if age < 80:
+			hpi +=- (80 - age) / 8.
 
 		if return_metadata:
 			return L, L_, age, PVNE, CV, hpi
@@ -1558,14 +1558,23 @@ class Biography(Article):
 		if self._birth_date is None:
 			d = ['NA']
 			t = 'NA'
-			if len(self.infobox()) != 0:
-				for box in list(self.infobox().values()):
-					if 'birth_date' in list(box.keys()):
-						t = box['birth_date']
-						break
-				if t != 'NA':
-					d = parse_date(t)
-			else:
+
+			infobox = self.infobox()
+
+			if len(infobox) != 0:
+				try:
+					for box in list(infobox.values()):
+						if 'birth_date' in list(box.keys()):
+							t = box['birth_date']
+							break
+
+					if t != 'NA':
+						d = parse_date(t)
+				except:
+					d = ['NA']
+					t = 'NA'
+
+			if d == ['NA'] and t == 'NA':
 				t = 'wd'
 				d = self.wd_prop('P569')[0]['time']
 				if d != 'NA':
@@ -1575,6 +1584,7 @@ class Biography(Article):
 						d = tuple(d)
 					else:
 						d = d.split('T')[0][1:].split('-')
+
 			if d[0] == 'NA':
 				t = 'wd' if t =='NA' else t
 				d = self.wd_prop('P569')[0]['time']
@@ -1585,10 +1595,13 @@ class Biography(Article):
 						d = tuple(d)
 					else:
 						d = d.split('T')[0][1:].split('-')
-			self._birth_date = (d,t)
-		d,t = self._birth_date
+
+			self._birth_date = (d, t)
+
+		d, t = self._birth_date
+
 		if raw:
-			return (d,t)
+			return d, t
 		else:
 			return d
 
