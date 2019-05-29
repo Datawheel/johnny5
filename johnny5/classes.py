@@ -25,7 +25,10 @@ except:
 
 from .functions import country, _dms2dd, _dt2str, _all_dates
 from .query import wd_q, wp_q, _string, _isnum, _rget, get_soup
-from .parse_functions import drop_comments, find_nth, parse_date,get_links, correct_titles, parse_ints, parse_p
+from .parse_functions import (
+	drop_comments, find_nth, parse_date,get_links, correct_titles, parse_ints,
+	parse_p
+)
 
 
 class Article:
@@ -584,22 +587,29 @@ class Article:
 		"""
 		PV = []
 		today = dt.datetime.now()
-		timeWindow = dt.timedelta(days=windowDays)
-		start_date = today-timeWindow
+		time_window = dt.timedelta(days=windowDays)
+		start_date = today - time_window
 		start_date_str = str(start_date.year)+'-'+('0'+str(start_date.month))[-2:]
 
 		for lang in self.langlinks().keys():
-			if lang !='en':
-				cdate = dt.datetime.strptime(self.creation_date(lang).split('T')[0], '%Y-%m-%d')
-				if (today-cdate) > timeWindow:
+			if lang != 'en':
+				try:
+					cdate = dt.datetime.strptime(self.creation_date(lang).split('T')[0], '%Y-%m-%d')
+				except:
+					continue
+
+				if (today - cdate) > time_window:
 					try:
-						views = self.pageviews(start_date_str,lang=lang)['views'].sum()
+						views = self.pageviews(start_date_str, lang=lang)['views'].sum()
 						PV.append(views)
 					except:
 						pass
 
 		if 'en' in self.langlinks().keys():
-			PVen = self.pageviews(start_date_str, lang='en')['views'].sum()
+			try:
+				PVen = self.pageviews(start_date_str, lang='en')['views'].sum()
+			except:
+				PVen = 0
 		else:
 			PVen = 0
 
@@ -956,20 +966,24 @@ class Article:
 			return out.groupby(['year','month']).sum()[['views']].reset_index().sort_values(by=['year','month'])
 
 	def _pv_rest(self,start_date,end_date,get_previous=False,lang='en'):
+		# print('it gets here')
+
 		url = 'https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/'+lang+'.wikipedia/all-access/user/'+self.langlinks(lang=lang)+'/daily/'+_dt2str(start_date)+'/'+_dt2str(end_date)
 		r = _rget(url) #.json()
 		days = _all_dates(start_date,end_date)
-		new_views = DataFrame([(int(val['timestamp'][:4]),int(val['timestamp'][4:6]),int(val['timestamp'][6:8]),val['views']) for val in r['items']],columns=['year','month','day','views'])
-		new_views = merge(days,new_views,how='left').fillna(0)
+		new_views = DataFrame([(int(val['timestamp'][:4]),int(val['timestamp'][4:6]),int(val['timestamp'][6:8]), val['views']) for val in r['items']], columns=['year','month','day','views'])
+		new_views = merge(days, new_views, how='left').fillna(0)
+
 		if get_previous:
 			for title in self.previous_titles():
 				url = 'https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/'+lang+'.wikipedia/all-access/user/'+title+'/daily/'+_dt2str(start_date)+'/'+_dt2str(end_date)
 				r = _rget(url) #.json()
-				new_views_t = DataFrame([(int(val['timestamp'][:4]),int(val['timestamp'][4:6]),int(val['timestamp'][6:8]),val['views']) for val in r['items']],columns=['year','month','day','views_t'])
+				new_views_t = DataFrame([(int(val['timestamp'][:4]),int(val['timestamp'][4:6]),int(val['timestamp'][6:8]), val['views']) for val in r['items']], columns=['year','month','day','views_t'])
 				new_views = merge(new_views,new_views_t,how='outer').fillna(0)
 				new_views['views'] = new_views['views']+new_views['views_t']
-				new_views = new_views.drop('views_t',1)
-		self._views[lang] = concat([self._views[lang],new_views]).drop_duplicates()
+				new_views = new_views.drop('views_t', 1)
+
+		self._views[lang] = concat([self._views[lang], new_views]).drop_duplicates()
 
 	def _pv_grok(self,start_date,end_date,get_previous=False,lang='en'):
 		warnings.warn('Grok API is no longer working, so the earliest starting date for pageviews is 2015-07-01')
@@ -1398,6 +1412,9 @@ class Biography(Article):
 
 	def hpi(self, L=None, return_metadata=False):
 		"""Calculates the Human Popularity Index."""
+
+		np.seterr(all='raise')
+
 		PV, PVen = self.CumulativePageviews()
 		PVNE = sum(PV)
 		age = self.age_of_meme()
@@ -1407,13 +1424,14 @@ class Biography(Article):
 		if not L:
 			L = self.L()
 
+		# TODO: Check error with division that's happening to 4 different profiles
 		hpi_actual = log(L ** 2) + log(L_ ** 2) + log(age) / log(4) + log(PVNE) - log(CV)
 		hpi_cutoff = log(L ** 2) + log(L_ ** 2) + log(500) / log(4) + log(PVNE) - log(CV)
 
 		hpi = minimum(hpi_cutoff, hpi_actual)
 
 		if age < 80:
-			hpi +=- (80 - age) / 8.
+			hpi -= (80 - age) / 8.
 
 		if return_metadata:
 			return L, L_, age, PVNE, CV, hpi
