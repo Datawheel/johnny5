@@ -594,7 +594,9 @@ def download_latest():
 			os.remove(path + f)
 
 	if drop_instances:
-		os.remove(path + filename)
+		# NOTE: Don't think this is needed anymore since the gunzip command above should
+		# remove this file upon completion.
+		# os.remove(path + filename)
 		remove = os.listdir(path + 'instances/')
 
 		for f in remove:
