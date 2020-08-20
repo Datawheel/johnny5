@@ -182,7 +182,7 @@ def wd_instances(cl, include_subclasses=False, return_subclasses=False):
 		to_query = set([cl])
 		print("Retrieving subclasses.")
 	else:
-		queried = set([cl])	
+		queried = set([cl])
 		to_query = set([])
 
 	while len(to_query) != 0:

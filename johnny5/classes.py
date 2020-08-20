@@ -46,7 +46,7 @@ class Article:
 		Either 'title', 'curid', or 'wdid'
 		Type of I.
 	"""
-	def __init__(self,I,Itype=None,slow_connection=False):
+	def __init__(self, I, Itype=None, slow_connection=False):
 		Itype = _id_type(I) if Itype is None else Itype
 		if Itype == 'title':
 			I = 'NA' if I.strip() =='' else I
@@ -235,7 +235,6 @@ class Article:
 				raise NameError("No Wikipedia page corresponding to this article")
 			elif lang == 'en':
 				url = 'https://en.wikipedia.org/wiki/' + self.title().replace(' ', '_')
-				print(url)
 				return url
 			else:
 				if lang in list(self.langlinks().keys()):
@@ -248,7 +247,6 @@ class Article:
 			if self.no_wd:
 				raise NameError("No Wikidata page corresponding to this article")
 			url = 'https://www.wikidata.org/wiki/'+self.wdid()
-			print(url)
 			return url
 		else:
 			raise NameError('Wrong wiki')
@@ -965,27 +963,32 @@ class Article:
 		else:
 			return out.groupby(['year','month']).sum()[['views']].reset_index().sort_values(by=['year','month'])
 
-	def _pv_rest(self,start_date,end_date,get_previous=False,lang='en'):
-		# print('it gets here')
-
+	def _pv_rest(self, start_date, end_date, get_previous=False, lang='en'):
 		url = 'https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/'+lang+'.wikipedia/all-access/user/'+self.langlinks(lang=lang)+'/daily/'+_dt2str(start_date)+'/'+_dt2str(end_date)
 		r = _rget(url) #.json()
 		days = _all_dates(start_date,end_date)
-		new_views = DataFrame([(int(val['timestamp'][:4]),int(val['timestamp'][4:6]),int(val['timestamp'][6:8]), val['views']) for val in r['items']], columns=['year','month','day','views'])
+		new_views = DataFrame(
+			[(int(val['timestamp'][:4]),int(val['timestamp'][4:6]),int(val['timestamp'][6:8]), val['views']) for val in r['items']],
+			columns=['year','month','day','views']
+		)
 		new_views = merge(days, new_views, how='left').fillna(0)
 
 		if get_previous:
 			for title in self.previous_titles():
 				url = 'https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/'+lang+'.wikipedia/all-access/user/'+title+'/daily/'+_dt2str(start_date)+'/'+_dt2str(end_date)
 				r = _rget(url) #.json()
-				new_views_t = DataFrame([(int(val['timestamp'][:4]),int(val['timestamp'][4:6]),int(val['timestamp'][6:8]), val['views']) for val in r['items']], columns=['year','month','day','views_t'])
+
+				new_views_t = DataFrame(
+					[(int(val['timestamp'][:4]), int(val['timestamp'][4:6]), int(val['timestamp'][6:8]), val['views']) for val in r['items']],
+					columns=['year','month','day','views_t']
+				)
 				new_views = merge(new_views,new_views_t,how='outer').fillna(0)
 				new_views['views'] = new_views['views']+new_views['views_t']
 				new_views = new_views.drop('views_t', 1)
 
 		self._views[lang] = concat([self._views[lang], new_views]).drop_duplicates()
 
-	def _pv_grok(self,start_date,end_date,get_previous=False,lang='en'):
+	def _pv_grok(self, start_date, end_date, get_previous=False, lang='en'):
 		warnings.warn('Grok API is no longer working, so the earliest starting date for pageviews is 2015-07-01')
 		# days = _all_dates(start_date,end_date)
 		# for y,m in days[['year','month']].drop_duplicates().values:
