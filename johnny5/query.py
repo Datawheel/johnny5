@@ -30,7 +30,7 @@ def _isiter(obj):
 
 def _rget(url):
 	""" Function used to track the requests that are performed. """
-	return requests.get(url).json()
+	return requests.get(url, headers={'User-Agent': 'Mozilla/4.0 (compatible; MSIE 6.0; Windows 98)'}).json()
 	# p = subprocess.Popen(['curl', url], stdout=subprocess.PIPE)
 	# r = p.communicate()[0].decode("utf-8")
 	# return json.loads(r)

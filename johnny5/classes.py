@@ -1428,10 +1428,19 @@ class Biography(Article):
 			L = self.L()
 
 		# TODO: Check error with division that's happening to 4 different profiles
+		if PVNE == 0:
+			PVNE = 1
+		if CV == 0:
+			CV = 1
+		if age == 0:
+			age = 1
+
 		hpi_actual = log(L ** 2) + log(L_ ** 2) + log(age) / log(4) + log(PVNE) - log(CV)
 		hpi_cutoff = log(L ** 2) + log(L_ ** 2) + log(500) / log(4) + log(PVNE) - log(CV)
 
 		hpi = minimum(hpi_cutoff, hpi_actual)
+		if hpi < 0:
+			hpi = 0
 
 		if age < 80:
 			hpi -= (80 - age) / 8.
@@ -1443,13 +1452,20 @@ class Biography(Article):
 
 	def effectiveL(self, PV, PVen):
 		H = array(PV + [PVen])
-		H = H / sum(H)
-		L_ = exp(entropy(H))
-		return L_
+		if sum(H) == 0:
+			return 1.0
+		else:
+			H_sum = 1 if sum(H) == 0 else sum(H)
+			H = H / H_sum
+			L_ = exp(entropy(H))
+			return L_
 
 	def coeffOfVariation(self, PV, PVen):
 		CV = array(PV + [PVen])
-		CV = std(CV) / mean(CV)
+		try:
+			CV = std(CV) / mean(CV)
+		except FloatingPointError:
+			return 1
 		return CV
 
 	def gender(self):
