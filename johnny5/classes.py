@@ -986,7 +986,12 @@ class Article:
 				new_views['views'] = new_views['views']+new_views['views_t']
 				new_views = new_views.drop('views_t', 1)
 
-		self._views[lang] = concat([self._views[lang], new_views]).drop_duplicates()
+		# 🛠️ Fix: ensure _views[lang] is non-empty before concat
+		existing_views = self._views.get(lang, DataFrame())
+		if existing_views.empty or existing_views.isna().all().all():
+			self._views[lang] = new_views
+		else:
+			self._views[lang] = concat([existing_views, new_views]).drop_duplicates()
 
 	def _pv_grok(self, start_date, end_date, get_previous=False, lang='en'):
 		warnings.warn('Grok API is no longer working, so the earliest starting date for pageviews is 2015-07-01')
